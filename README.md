@@ -1,2 +1,2 @@
 # lc-misc
-Miscellaneous LiveCode Projects or Snipets 
+Miscellaneous LiveCode Projects or Snippets 
