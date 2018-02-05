@@ -1,5 +1,28 @@
 script "clipboardhelper"
 
+on extensionInitialize
+   if the target is not me then
+      pass extensionInitialize
+   end if
+   
+   insert the script of me into back
+end extensionInitialize
+
+on extensionFinalize
+   if the target is not me then
+      pass extensionFinalize
+   end if
+   
+   remove the script of me from back
+end extensionFinalize
+---------------------------------------------------------------------
+
+
+-- PR 6293 for bug 19206 should mostly eliminate the need for this
+-- handler since the developer can specify what type of data to copy
+-- This handler will copy the UTF8 plain text representation off the
+-- clipboard, clear the clipboard, and place that representation back
+-- as the only representation on the clipboard.
 on makeClipboardPlainText
    local tClip, tRawType
    
@@ -19,8 +42,12 @@ on makeClipboardPlainText
 end makeClipboardPlainText
 
 
+-- This handler is to partially address bug 18699.  There is no way to
+-- remove a single representation from the clipboard, so when styled
+-- text is needed, this can be used to make the HTML on the system
+-- clipboard be a more accurate representation of the styled text.
+-- If text only is needed, the above handler is should be used.
 on updateClipboardHtmlText
-   -- convert HTMLText to format appropriate for the system clipboard
    local tClipboard
    
    lock clipboard

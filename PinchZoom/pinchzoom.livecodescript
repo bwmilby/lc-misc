@@ -5,6 +5,10 @@ script "pinchzoom"
 
 -- Unsure of the original license.
 
+on setAsBehavior pTarget
+   set the behavior of pTarget to the long id of this me
+end setAsBehavior
+
 local panning, \
       zooming, \
       startX0, startY0, \
