@@ -31,7 +31,7 @@ on makeClipboardPlainText
    else if the platform is "Linux" then
       put "text/plain;charset=utf-8" into tRawType -- Linux
    else if the platform contains "Win" then
-      put "CF_UNICODE" into tRawType -- Windows
+      put "CF_UNICODETEXT" into tRawType -- Windows
    end if
    
    lock the clipBoard
