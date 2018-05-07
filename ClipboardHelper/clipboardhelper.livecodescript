@@ -19,7 +19,7 @@ end extensionFinalize
 
 
 -- PR 6293 for bug 19206 should mostly eliminate the need for this
--- handler since the developer can specify what type of data to copy
+-- handler since the developer can specify what type of data to copy.
 -- This handler will copy the UTF8 plain text representation off the
 -- clipboard, clear the clipboard, and place that representation back
 -- as the only representation on the clipboard.
@@ -46,11 +46,11 @@ end makeClipboardPlainText
 -- remove a single representation from the clipboard, so when styled
 -- text is needed, this can be used to make the HTML on the system
 -- clipboard be a more accurate representation of the styled text.
--- If text only is needed, the above handler is should be used.
+-- If text only is needed, the above handler should be used.
 on updateClipboardHtmlText
    local tClipboard
    
-   lock clipboard
+   lock the clipboard
    put the fullClipboardData["HTMLtext"] into tClipboard
 
    -- retain empty lines
@@ -66,5 +66,5 @@ on updateClipboardHtmlText
    replace "> <" with ">&nbsp;<" in tClipboard
 
    set the fullClipboardData["html"] to tClipboard
-   unlock clipboard
+   unlock the clipboard
 end updateClipboardHtmlText
