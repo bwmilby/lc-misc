@@ -286,13 +286,13 @@ command saveScriptFile \
    if tFileNewer then
       put messageDigest(tFileScript, kDigestType) into tProps[kDigestType]
       _removeHeader tFileScript
+      addToLog xDataA["fileName"] && "changed outside of IDE"
       try
          set the script of pObjectLongID to tFileScript
       catch tError
-         addToLog "Error setting script." & lf & "Will retry in 500ms"
+         addToLog "Unable to import script... retrying in 500ms"
          send "updateRunningScriptLater pObjectLongID, tFileScript" to this card in 500 milliseconds
       end try
-      addToLog xDataA["fileName"] && "changed outside of IDE"
    else if tFileMissing or tScriptChanged then
       put tHash into tProps[kDigestType]
       put tScript into URL (kFileMethod & tFullFilePath)
@@ -305,35 +305,30 @@ end saveScriptFile
 
 
 command loadScriptFile \
-      pStackName,   /* stack short name          */ \
-      @xDataA,      /* export data array         */ \
-      pObjectLongID /* long ID of control        */
-   local tFileHash, tFileScript, tFullFilePath, tHash, tProps
-   local tScript
+      pFileName,    /* file name to load         */ \
+      @xDataA       /* export data array         */
+   local tFileScript, tObjectLongID, tOffset, tStackName
    
-   // probably need to just take a file name instead of stack/objID
+   put line 1 to 8 of URL ("file:" & pFileName) into tFileScript
    
-   if pObjectLongID is empty then exit loadScriptFile
-   put _buildFile(pStackName, xDataA, pObjectLongID) into tScript
+   put offset("# ID:",tFileScript)+5 into tOffset
+   delete char 1 to tOffset of tFileScript
+   put line 1 of tFileScript into tObjectLongID
    
-   put the customProperties[kPropertySet] of pObjectLongID into tProps
-   put xDataA["exportPath"] & "/" & xDataA["fileName"] into tFullFilePath
-   if _getFileSeconds(xDataA) <= tProps["fileSeconds"] then
-      // file is not newer
+   if not exists(tObjectLongID) then
+      addToLog "File not valid:" && pFileName & lf \
+            & tObjectLongID && "does not exist."
+      exit loadScriptFile
    end if
    
-   // check to see if the file needs to be updated
-   put messageDigest(tScript, kDigestType) into tHash
-   put URL (kFileMethod & tFullFilePath) into tFileScript
-   put messageDigest(tFileScript, kDigestType) into tFileHash
-   
-   if tHash is tFileHash then
-      // files match, no need to make changes
+   // pull tStackName from long ID
+   if word -5 of tObjectLongID is "stack" then
+      put char 2 to -2 of word -4 of tObjectLongID into tStackName
+   else
+      put char 2 to -2 of word -1 of tObjectLongID into tStackName
    end if
    
-   // strip header from file
-   // put into script
-   // update props
+   saveScriptFile tStackName, xDataA, tObjectLongID
 end loadScriptFile
 
 

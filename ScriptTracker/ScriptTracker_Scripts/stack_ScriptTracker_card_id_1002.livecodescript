@@ -48,8 +48,8 @@ end restoreLog
 
 
 command updateRunningScriptLater \
-      pObjectLongID, \
-      pScript
+      pObjectLongID, /* long ID of object  */ \
+      pScript        /* replacement script */
    addToLog "Trying to set script of" && pObjectLongID
    set the script of pObjectLongID to pScript
 end updateRunningScriptLater
