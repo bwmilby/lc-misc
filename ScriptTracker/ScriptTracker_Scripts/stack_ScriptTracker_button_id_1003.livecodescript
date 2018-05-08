@@ -286,7 +286,12 @@ command saveScriptFile \
    if tFileNewer then
       put messageDigest(tFileScript, kDigestType) into tProps[kDigestType]
       _removeHeader tFileScript
-      set the script of pObjectLongID to tFileScript
+      try
+         set the script of pObjectLongID to tFileScript
+      catch tError
+         addToLog "Error setting script." & lf & "Will retry in 500ms"
+         send "updateRunningScriptLater pObjectLongID, tFileScript" to this card in 500 milliseconds
+      end try
       addToLog xDataA["fileName"] && "changed outside of IDE"
    else if tFileMissing or tScriptChanged then
       put tHash into tProps[kDigestType]

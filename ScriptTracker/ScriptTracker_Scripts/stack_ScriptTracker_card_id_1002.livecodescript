@@ -21,6 +21,13 @@ on resumeStack
 end resumeStack
 
 
+on saveStackRequest
+   put empty into field "log"
+   set the text of button "StackMenu" to empty
+   pass saveStackRequest
+end saveStackRequest
+
+
 command addToLog pText
    put pText & lf after field "log"
    set the vscroll of field "log" to the formattedHeight of field "log"
@@ -40,8 +47,9 @@ command restoreLog
 end restoreLog
 
 
-on saveStackRequest
-   put empty into field "log"
-   set the text of button "StackMenu" to empty
-   pass saveStackRequest
-end saveStackRequest
+command updateRunningScriptLater \
+      pObjectLongID, \
+      pScript
+   addToLog "Trying to set script of" && pObjectLongID
+   set the script of pObjectLongID to pScript
+end updateRunningScriptLater
