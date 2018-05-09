@@ -9,4 +9,7 @@ Script "stack_ScriptTracker_button_id_1011"
 on mouseUp pButtonNumber
    topLevel this stack
    choose browse tool
+   if the mode of stack "ScriptTrackerLog" is 4 then
+      toplevel stack "ScriptTrackerLog"
+   end if
 end mouseUp

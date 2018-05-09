@@ -135,7 +135,8 @@ command buildMainStackArray \
    
    // add object ID lists to array (backgrounds, shared groups, cards, substacks)
    buildStackArray pStackName, xDataA
-   put the substacks of xDataA[pStackName]["longID"] into xDataA[pStackName]["substacks"]
+   put the substacks of xDataA[pStackName]["longID"] into \
+         xDataA[pStackName]["substacks"]
    repeat for each line tSubstack in xDataA[pStackName]["substacks"]
       buildStackArray tSubstack, xDataA
    end repeat
@@ -187,7 +188,8 @@ command exportStackScripts \
    
    // save accumulated diff file
    if pStackName is xDataA["mainStack"] and xDataA["diff"] is not empty then
-      put xDataA["diff"] into URL (kFileMethod & xDataA["diffPath"] & "/" & "diff_" & the seconds & ".txt")
+      put xDataA["diff"] into URL (kFileMethod & xDataA["diffPath"] \
+            & "/" & "diff_" & the seconds & ".txt")
    end if
 end exportStackScripts
 
@@ -221,8 +223,9 @@ command saveScriptFile \
       pStackName,   /* stack short name          */ \
       @xDataA,      /* export data array         */ \
       pObjectLongID /* long ID of control        */
-   local tCollisionPolicy, tDiff, tFileMissing, tFileNewer, tFileScript
-   local tFullFilePath, tHash, tProps, tPropSets, tScript, tScriptChanged
+   local tCollisionPolicy, tDiff, tFileHash, tFileMissing, tFileNewer
+   local tFileScript, tFullFilePath, tHash, tProps, tPropSets
+   local tScript, tScriptChanged
    
    if pObjectLongID is empty then put xDataA[pStackName]["longID"] into pObjectLongID
    
@@ -249,8 +252,11 @@ command saveScriptFile \
    end if
    
    if not tFileMissing then
-      put URL (kFileMethod & tFullFilePath) into tFileScript
-      replace crlf with lf in tFileScript
+      put URL ("file:" & tFullFilePath) into tFileScript
+      if tFileNewer then
+         put messageDigest(tFileScript, kDigestType) into tFileHash
+         if tHash is tFileHash then put false into tFileNewer
+      end if
       if tFileNewer then
          put diffCompare(tScript,tFileScript,kDiffContext) into tDiff
          put tFullFilePath & lf & pObjectLongID & lf & lf before tDiff
@@ -258,7 +264,7 @@ command saveScriptFile \
          put diffCompare(tFileScript,tScript,kDiffContext) into tDiff
          put pObjectLongID & lf & tFullFilePath & lf & lf before tDiff
       end if
-      put tDiff & lf & lf after xDataA["diff"]
+      if tDiff is not empty then put tDiff & lf & lf after xDataA["diff"]
    end if
    
    if tFileNewer and tScriptChanged then
@@ -278,20 +284,23 @@ command saveScriptFile \
             put false into tScriptChanged
             break
          case "Skip"
+            addToLog xDataA["fileName"] && \
+                  "skipped - changes in file and IDE"
             exit saveScriptFile
             break
       end switch
    end if
    
    if tFileNewer then
-      put messageDigest(tFileScript, kDigestType) into tProps[kDigestType]
+      put tFileHash into tProps[kDigestType]
       _removeHeader tFileScript
       addToLog xDataA["fileName"] && "changed outside of IDE"
       try
          set the script of pObjectLongID to tFileScript
       catch tError
          addToLog "Unable to import script... retrying in 500ms"
-         send "updateRunningScriptLater pObjectLongID, tFileScript" to this card in 500 milliseconds
+         send "updateRunningScriptLater pObjectLongID, tFileScript" \
+               to this card in 500 milliseconds
       end try
    else if tFileMissing or tScriptChanged then
       put tHash into tProps[kDigestType]
@@ -428,7 +437,8 @@ private function _getObjectLongName pObjectLongID, pStackLongID
       if word 2 of tObjectShortName is "id" then
          put pObjectLongID into tObjectLongName
       else
-         put "bkgnd" && _q(tObjectShortName) && "of" && pStackLongID into tObjectLongName
+         put "bkgnd" && _q(tObjectShortName) && "of" && pStackLongID \
+               into tObjectLongName
       end if
    else
       put the long name of pObjectLongID into tObjectLongName

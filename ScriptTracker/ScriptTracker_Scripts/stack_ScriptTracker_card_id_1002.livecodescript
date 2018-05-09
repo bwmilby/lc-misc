@@ -12,7 +12,7 @@ local sLog
 
 on openStack
    set the hilite of button "Automatic" of me to false
-   put empty into field "log"
+   put empty into field "log" of stack "ScriptTrackerLog"
 end openStack
 
 
@@ -22,27 +22,28 @@ end resumeStack
 
 
 on saveStackRequest
-   put empty into field "log"
+   put empty into field "log" of stack "ScriptTrackerLog"
    set the text of button "StackMenu" to empty
    pass saveStackRequest
 end saveStackRequest
 
 
 command addToLog pText
-   put pText & lf after field "log"
-   set the vscroll of field "log" to the formattedHeight of field "log"
+   put pText & lf after field "log" of stack "ScriptTrackerLog"
+   set the vscroll of field "log" of stack "ScriptTrackerLog" to \
+         the formattedHeight of field "log" of stack "ScriptTrackerLog"
 end addToLog
 
 
 command clearLog
-   put the text of field "log" into sLog
-   put empty into field "log"
+   put the text of field "log" of stack "ScriptTrackerLog" into sLog
+   put empty into field "log" of stack "ScriptTrackerLog"
 end clearLog
 
 
 command restoreLog
-   if the text of field "log" is empty then
-      set the text of field "log" to sLog
+   if the text of field "log" of stack "ScriptTrackerLog" is empty then
+      set the text of field "log" of stack "ScriptTrackerLog" to sLog
    end if
 end restoreLog
 

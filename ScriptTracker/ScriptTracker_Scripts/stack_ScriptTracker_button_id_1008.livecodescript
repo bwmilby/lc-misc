@@ -8,6 +8,5 @@ Script "stack_ScriptTracker_button_id_1008"
 
 on menuPick pItemName
    put pItemName into field "StackName" of this card
-   --createStackScriptFolder
 end menuPick
 
