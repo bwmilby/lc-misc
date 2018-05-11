@@ -8,4 +8,6 @@ Script "stack_ScriptTracker_button_id_1012"
 
 on mouseUp
    palette stack "ScriptTrackerLog"
+   set the vscroll of field "log" of stack "ScriptTrackerLog" to \
+         the formattedHeight of field "log" of stack "ScriptTrackerLog"
 end mouseUp

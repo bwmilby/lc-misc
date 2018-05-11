@@ -31,7 +31,8 @@ Script "stack_ScriptTracker_button_id_1003"
 *   kDiffContext         number of lines on either side of each diff
 *   kDigestType          digest algorithm to use, suggest MD5
 *   kFileMethod          "binfile:" works for Mac/Linux (LF)
-*                        "file:" will convert to/from CRLF for Windows
+*                        "file:" will convert to CRLF for Windows
+*                        "file:" is always used for importing scripts
 *   kPropertySet         name of the custom property set to use for tracking
 *
 *
@@ -236,6 +237,7 @@ command saveScriptFile \
    
    put _buildFile(pStackName, xDataA, pObjectLongID) into tScript
    if tScript is empty then exit saveScriptFile
+   addToCount
    
    // optional feature to delete custom property set from all objects
    put the customPropertySets of pObjectLongID into tPropSets
@@ -455,3 +457,9 @@ end _getObjectLongName
 function _q pText
    return quote & pText & quote
 end _q
+
+
+on mouseup
+   // enable easy access to this script from the behavior button
+   edit script of me
+end mouseup

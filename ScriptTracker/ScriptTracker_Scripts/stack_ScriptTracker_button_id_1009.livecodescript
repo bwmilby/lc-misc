@@ -7,6 +7,9 @@ Script "stack_ScriptTracker_button_id_1009"
 */
 
 
+//>CONSTANTS
+constant kScrollToBottom = "yes"
+
 //>LOCALS
 local sFolderToWatch, sLastDirContentsMD5
 
@@ -66,7 +69,7 @@ on UpdateScripts
    local tStackName, tStart, tStartMS, tStartTime
    
    addToLog "Folder changed! " & the short date && the long time
-   lock screen
+   --lock screen
    clearLog
    
    put empty into sLastDirContentsMD5
@@ -79,8 +82,8 @@ on UpdateScripts
    
    restoreLog
    addToLog "Start time:" && tStartTime && "Finish time:" && the long time
-   addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms"
-   unlock screen
+   addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
+   --unlock screen
    
    send "WatchFolder" && _q("UpdateScripts") to me in 500 millisecs
 end UpdateScripts
