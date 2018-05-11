@@ -200,6 +200,11 @@ command exportChildContolScripts \
       pObjectLongID /* long ID of parent control */
    local tChildControlIDs, tControlLongID, tSharedGroupIDs, tStackLongID
    
+   if the dgProps["Control Type"] of pObjectLongID is "Data Grid" then
+      // do not export the automatically generated dgGrid groups and controls
+      exit exportChildContolScripts
+   end if
+   
    try
       put the childControlIDs of pObjectLongID into tChildControlIDs
       if tChildControlIDs is empty then exit exportChildContolScripts
