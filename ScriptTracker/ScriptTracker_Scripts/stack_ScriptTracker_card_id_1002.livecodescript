@@ -21,7 +21,14 @@ end openStack
 
 
 on resumeStack
-   set the text of button "StackMenu" to IDEUserMainstacks()
+   local tStacks
+   repeat for each line tStack in IDEUserMainstacks()
+      if the mode of stack tStack > 0 then
+         put tStack & lf after tStacks
+      end if
+   end repeat
+   delete char -1 of tStacks
+   set the text of button "StackMenu" to tStacks
 end resumeStack
 
 

@@ -11,31 +11,37 @@ Script "stack_ScriptTracker_button_id_1009"
 constant kScrollToBottom = "yes"
 
 //>LOCALS
-local sFolderToWatch, sLastDirContentsMD5
+local sDataA, sFiles, sFolderToWatch, sLastDirContentsMD5, sTimes
 
 
 on mouseUp
-   local tDataA, tStackName
+   local tStackName, tStartMS, tStartTime
    
    if the hilite of me is true then
       -- Do an initial sync:
+      clearLog
+      put the milliseconds into tStartMS
+      put the long time into tStartTime
       put field "StackName" of this card into tStackName
-      buildMainStackArray tStackName, tDataA
-      exportStackScripts tStackName, tDataA
+      buildMainStackArray tStackName, sDataA
+      exportStackScripts tStackName, sDataA
+      addToLog "Start time:" && tStartTime && "Finish time:" && the long time
+      addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
       
       -- Start watching:
-      put tDataA["exportPath"] into sFolderToWatch
+      put sDataA["exportPath"] into sFolderToWatch
       WatchFolder "UpdateScripts"
    else
       -- Stop watching:
       put empty into sFolderToWatch
       put empty into sLastDirContentsMD5
+      put empty into sTimes
    end if
 end mouseUp
 
 
 on WatchFolder pCallbackHandlerName
-   local tDirContentsMD5, tFiles
+   local tDirContentsMD5
    
    if sFolderToWatch is empty then
       set the hilite of me to false
@@ -49,12 +55,18 @@ on WatchFolder pCallbackHandlerName
    end if
    
    -- Get file list:
-   put files(sFolderToWatch,"detailed") into tFiles
-   // TODO:  need to delete item 6 of detailed files...
-   //        don't want to do this based on access time
+   put files(sFolderToWatch,"detailed") into sFiles
    
    -- Put MD5 digest of file list into tmp, comparing it to old one:
-   put md5Digest(tFiles) into tDirContentsMD5
+   put md5Digest(sFiles) into tDirContentsMD5
+   
+   if sTimes is empty then
+      filter sFiles with "stack*"
+      repeat for each line tLine in sFiles
+         put item 5 of tLine into sTimes[item 1 of tLine]
+      end repeat
+   end if
+   
    if sLastDirContentsMD5 is not empty \
          and tDirContentsMD5 <> sLastDirContentsMD5 then
       send pCallbackHandlerName
@@ -66,10 +78,8 @@ end WatchFolder
 
 
 on UpdateScripts
-   local tStackName, tStart, tStartMS, tStartTime
+   local tFile, tStackName, tStart, tStartMS, tStartTime, tTime
    
-   addToLog "Folder changed! " & the short date && the long time
-   --lock screen
    clearLog
    
    put empty into sLastDirContentsMD5
@@ -77,13 +87,26 @@ on UpdateScripts
    put the long time into tStartTime
    
    put field "StackName" of this card into tStackName
-   buildMainStackArray tStackName, sDataA
-   exportStackScripts tStackName, sDataA
    
-   restoreLog
-   addToLog "Start time:" && tStartTime && "Finish time:" && the long time
-   addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
-   --unlock screen
+   filter sFiles with "stack*"
+   repeat for each line tLine in sFiles
+      put item 1 of tLine into tFile
+      put item 5 of tLine into tTime
+      if tTime > sTimes[tFile] then
+         loadScriptFile sFolderToWatch & "/" & tFile, sDataA
+         put tTime into sTimes[tFile]
+      end if
+   end repeat
+   if sDataA["diff"] is not empty then
+      saveDiffFile sDataA
+   end if
+   
+   if the text of field "log" of stack "ScriptTrackerLog" is empty then
+      restoreLog
+   else
+      addToLog "Start time:" && tStartTime && "Finish time:" && the long time
+      addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
+   end if
    
    send "WatchFolder" && _q("UpdateScripts") to me in 500 millisecs
 end UpdateScripts

@@ -13,9 +13,10 @@ constant kScrollToBottom = "yes"
 
 on mouseUp
    local tDataA, tStackName, tStart, tStartMS, tStartTime
-   
+
+   set the hilite of button "Automatic" of this card to false
+
    clearLog
-   --lock screen
    put the milliseconds into tStartMS
    put the long time into tStartTime
    
@@ -25,5 +26,4 @@ on mouseUp
    exportStackScripts tStackName, tDataA
    addToLog "Start time:" && tStartTime && "Finish time:" && the long time
    addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
-   --unlock screen
 end mouseUp

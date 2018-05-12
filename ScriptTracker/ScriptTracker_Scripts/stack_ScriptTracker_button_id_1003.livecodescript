@@ -189,10 +189,16 @@ command exportStackScripts \
    
    // save accumulated diff file
    if pStackName is xDataA["mainStack"] and xDataA["diff"] is not empty then
-      put xDataA["diff"] into URL (kFileMethod & xDataA["diffPath"] \
-            & "/" & "diff_" & the seconds & ".txt")
+      saveDiffFile xDataA
    end if
 end exportStackScripts
+
+
+command saveDiffFile @xDataA
+   put xDataA["diff"] into URL (kFileMethod & xDataA["diffPath"] \
+         & "/" & "diff_" & the seconds & ".txt")
+   put empty into xDataA["diff"]
+end saveDiffFile
 
 
 command exportChildContolScripts \
