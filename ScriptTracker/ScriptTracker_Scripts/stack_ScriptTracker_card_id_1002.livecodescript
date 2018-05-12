@@ -22,6 +22,7 @@ end openStack
 
 on resumeStack
    local tStacks
+   
    repeat for each line tStack in IDEUserMainstacks()
       if the mode of stack tStack > 0 then
          put tStack & lf after tStacks
@@ -59,7 +60,7 @@ end addCharToLog
 
 
 command clearLog
-   clearCount
+   put 0 into sCount
    put the text of field "log" of stack "ScriptTrackerLog" into sLogBackup
    put empty into field "log" of stack "ScriptTrackerLog"
 end clearLog

@@ -11,7 +11,7 @@ Script "stack_ScriptTracker_button_id_1009"
 constant kScrollToBottom = "yes"
 
 //>LOCALS
-local sDataA, sFiles, sFolderToWatch, sLastDirContentsMD5, sTimes
+local sDataA, sFiles, sFolderToWatch, sLastDirContentsMD5
 
 
 on mouseUp
@@ -24,7 +24,7 @@ on mouseUp
       put the long time into tStartTime
       put field "StackName" of this card into tStackName
       buildMainStackArray tStackName, sDataA
-      exportStackScripts tStackName, sDataA
+      exportMainStackScripts tStackName, sDataA
       addToLog "Start time:" && tStartTime && "Finish time:" && the long time
       addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
       
@@ -35,7 +35,6 @@ on mouseUp
       -- Stop watching:
       put empty into sFolderToWatch
       put empty into sLastDirContentsMD5
-      put empty into sTimes
    end if
 end mouseUp
 
@@ -59,13 +58,6 @@ on WatchFolder pCallbackHandlerName
    
    -- Put MD5 digest of file list into tmp, comparing it to old one:
    put md5Digest(sFiles) into tDirContentsMD5
-   
-   if sTimes is empty then
-      filter sFiles with "stack*"
-      repeat for each line tLine in sFiles
-         put item 5 of tLine into sTimes[item 1 of tLine]
-      end repeat
-   end if
    
    if sLastDirContentsMD5 is not empty \
          and tDirContentsMD5 <> sLastDirContentsMD5 then
@@ -92,9 +84,8 @@ on UpdateScripts
    repeat for each line tLine in sFiles
       put item 1 of tLine into tFile
       put item 5 of tLine into tTime
-      if tTime > sTimes[tFile] then
-         loadScriptFile sFolderToWatch & "/" & tFile, sDataA
-         put tTime into sTimes[tFile]
+      if tTime > sDataA["files"][tFile] then
+         loadScriptFile sFolderToWatch & tFile, sDataA
       end if
    end repeat
    if sDataA["diff"] is not empty then
@@ -108,5 +99,5 @@ on UpdateScripts
       addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
    end if
    
-   send "WatchFolder" && _q("UpdateScripts") to me in 500 millisecs
+   send "WatchFolder" && _q("UpdateScripts") to me in 1000 millisecs
 end UpdateScripts

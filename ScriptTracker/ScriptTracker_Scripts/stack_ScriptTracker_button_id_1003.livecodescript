@@ -27,6 +27,7 @@ Script "stack_ScriptTracker_button_id_1003"
 *   kCollisionPolicy     how changes to script and file are handled
 *                        options:  Script, File, Skip, Ask
 *   kDefaultDiffPath     relative path for diff files, merged
+*   kDefaultExtraPath    relative path for extra files, merged
 *   kDefaultExportPath   relative path for export files, merged
 *   kDiffContext         number of lines on either side of each diff
 *   kDigestType          digest algorithm to use, suggest MD5
@@ -40,6 +41,7 @@ Script "stack_ScriptTracker_button_id_1003"
 *    ["mainStack"]            Short name of main stack
 *    ["exportPath"]           Folder path for stack script exports
 *    ["diffPath"]             Folder path for stack diff export
+*    ["extraPath"]            Folder path for extra files
 *    ["collisionPolicy"]      How changes to script and file are handled
 *    [stack short name]       Short name of stack/substack
 *       ["longID"]            Long ID of stack
@@ -47,6 +49,8 @@ Script "stack_ScriptTracker_button_id_1003"
 *       ["sharedGroupIDs"]    List of shared group IDs
 *       ["cardIDs"]           List of card IDs
 *       ["substacks"]         List of substack names
+*    ["files"]                Array of files to track removed scripts
+*       [file name]           Modification time of file
 *    ["fileName"]             File name of last script exported
 */
 
@@ -55,6 +59,7 @@ Script "stack_ScriptTracker_button_id_1003"
 constant kCollisionPolicy = "Ask"
 constant kDefaultDiffPath = "[[tExportPath]]/diff"
 constant kDefaultExportPath = "[[tStackFileName]]_Scripts"
+constant kDefaultExtraPath = "[[tExportPath]]/extra"
 constant kDiffContext = 2
 constant kDigestType = "MD5"
 constant kFileMethod = "binfile:"
@@ -66,7 +71,7 @@ command buildMainStackArray \
       pStackName,   /* stack short name            */ \
       @xDataA,      /* export data array           */ \
       pPath         /* path for exports (optional) */
-   local tDiffPath, tExportPath, tProps, tStackFileName, tStackPath
+   local tBasePath, tExportPath, tProps, tStackFileName
    
    // ensure stack exists before proceeding
    if there is not a stack pStackName then
@@ -74,54 +79,38 @@ command buildMainStackArray \
       exit buildMainStackArray
    end if
    
-   // get stack path and file name
-   put char 2 to -2 of word -1 of the long id of stack pStackName into tStackPath
+   // get stack path and stack file name without extension
+   put char 2 to -2 of word -1 of the long id of stack pStackName into tBasePath
    set the itemdel to "/"
-   put item -1 of tStackPath into tStackFileName
-   delete item -1 of tStackPath
+   put item -1 of tBasePath into tStackFileName
+   delete item -1 of tBasePath
+   set the itemdel to "."
+   delete item -1 of tStackFileName
+   
+   // if pPath provided, use it as the base path
+   if pPath is not empty then
+      put pPath into tBasePath
+   end if
+   if char -1 of tBasePath is not "/" then put "/" after tBasePath
    
    // get stack level preferences
    put the customProperties[kPropertySet] of stack pStackName into tProps
    
    // set path for script exports
-   if pPath is empty then
-      put tProps["exportPath"] into tExportPath
-      if tExportPath is empty then
-         set the itemdel to "."
-         delete item -1 of tStackFileName
-         put merge(kDefaultExportPath) into tExportPath
-      end if
-      put tStackPath & "/" & tExportPath into pPath
-   else
-      put pPath into tExportPath
-   end if
-   if there is not a folder pPath then
-      try
-         create folder pPath
-      catch tError
-         answer "Error" && tError && "creating folder" && pPath
-         exit buildMainStackArray
-      end try
-   end if
-   put tExportPath into tProps["exportPath"]
-   put pPath into xDataA["exportPath"]
+   ensureDirectoryExists tBasePath, merge(kDefaultExportPath), \
+         xDataA["exportPath"], tProps["exportPath"]
+   if the result is "error" then exit buildMainStackArray
+   put tProps["exportPath"] into tExportPath
    
    // set path for diff exports
-   put tProps["diffPath"] into tDiffPath
-   if tDiffPath is empty then
-      put merge(kDefaultDiffPath) into tDiffPath
-   end if
-   put tStackPath & "/" & tDiffPath into pPath
-   if there is not a folder pPath then
-      try
-         create folder pPath
-      catch tError
-         answer "Error" && tError && "creating folder" && pPath
-         exit buildMainStackArray
-      end try
-   end if
-   put tDiffPath into tProps["diffPath"]
-   put pPath into xDataA["diffPath"]
+   ensureDirectoryExists tBasePath, merge(kDefaultDiffPath), \
+         xDataA["diffPath"], tProps["diffPath"]
+   if the result is "error" then exit buildMainStackArray
+   
+   // set path for extra files
+   ensureDirectoryExists tBasePath, merge(kDefaultExtraPath), \
+         xDataA["extraPath"], tProps["extraPath"]
+   if the result is "error" then exit buildMainStackArray
    
    // set collision policy
    if tProps["collisionPolicy"] is empty then
@@ -141,7 +130,34 @@ command buildMainStackArray \
    repeat for each line tSubstack in xDataA[pStackName]["substacks"]
       buildStackArray tSubstack, xDataA
    end repeat
+   
+   // ensure list of files is reset
+   delete variable xDataA["files"]
 end buildMainStackArray
+
+
+command ensureDirectoryExists \
+      pBasePath,     /* base path for export folders     */ \
+      pMergePath,    /* default relative path for folder */ \
+      @rFullPath,    /* full path for folder             */ \
+      @xRelativePath /* relative path for folder         */
+   local tFullPath
+   
+   if xRelativePath is empty then
+      put pMergePath into xRelativePath
+   end if
+   put pBasePath & xRelativePath into tFullPath
+   if there is not a folder tFullPath then
+      try
+         create folder tFullPath
+      catch tError
+         answer "Error" && tError && "creating folder" && tFullPath
+         return "error" for error
+      end try
+   end if
+   if char -1 of tFullPath is not "/" then put "/" after tFullPath
+   put tFullPath into rFullPath
+end ensureDirectoryExists
 
 
 command buildStackArray \
@@ -155,6 +171,27 @@ command buildStackArray \
    put the sharedGroupIDs of tStackLongID into xDataA[pStackName]["sharedGroupIDs"]
    put the cardIDs of tStackLongID into xDataA[pStackName]["cardIDs"]
 end buildStackArray
+
+
+command exportMainStackScripts \
+      pStackName,   /* stack short name          */ \
+      @xDataA       /* export data array         */
+   // same main stack
+   exportStackScripts pStackName, xDataA
+   
+   // save substacks
+   repeat for each line tSubstack in xDataA[pStackName]["substacks"]
+      exportStackScripts tSubstack, xDataA
+   end repeat
+   
+   // save accumulated diff file
+   if xDataA["diff"] is not empty then
+      saveDiffFile xDataA
+   end if
+   
+   // remove any extra files for objects that no longer exist
+   removeExtraFiles xDataA
+end exportMainStackScripts
 
 
 command exportStackScripts \
@@ -177,28 +214,32 @@ command exportStackScripts \
    
    // save card scripts and objects
    repeat for each line tObjectID in xDataA[pStackName]["cardIDs"]
-      put the long id of card ID tObjectID of tStackLongID into tObjectLongID
+      put the long id of card id tObjectID of tStackLongID into tObjectLongID
       saveScriptFile pStackName, xDataA, tObjectLongID
       exportChildContolScripts pStackName, xDataA, tObjectLongID
    end repeat
-   
-   // save substacks
-   repeat for each line tSubstack in xDataA[pStackName]["substacks"]
-      exportStackScripts tSubstack, xDataA
-   end repeat
-   
-   // save accumulated diff file
-   if pStackName is xDataA["mainStack"] and xDataA["diff"] is not empty then
-      saveDiffFile xDataA
-   end if
 end exportStackScripts
 
 
 command saveDiffFile @xDataA
    put xDataA["diff"] into URL (kFileMethod & xDataA["diffPath"] \
-         & "/" & "diff_" & the seconds & ".txt")
-   put empty into xDataA["diff"]
+         & "diff_" & the seconds & ".txt")
+   delete variable xDataA["diff"]
 end saveDiffFile
+
+
+command removeExtraFiles @xDataA
+   local tFiles
+   
+   put files(xDataA["exportPath"]) into tFiles
+   filter tFiles with "stack*"
+   repeat for each line tFile in tFiles
+      if xDataA["files"][tFile] is empty then
+         rename file xDataA["exportPath"] & tFile to \
+               xDataA["extraPath"] & the seconds & "_" & tFile
+      end if
+   end repeat
+end removeExtraFiles
 
 
 command exportChildContolScripts \
@@ -224,7 +265,7 @@ command exportChildContolScripts \
    
    repeat for each line tControlID in tChildControlIDs
       if tControlID is among the lines of tSharedGroupIDs then next repeat
-      put the long id of control ID tControlID of tStackLongID into tControlLongID
+      put the long id of control id tControlID of tStackLongID into tControlLongID
       saveScriptFile pStackName, xDataA, tControlLongID
       exportChildContolScripts pStackName, xDataA, tControlLongID
    end repeat
@@ -252,7 +293,8 @@ command saveScriptFile \
    
    // check to see if the file needs to be updated
    put the customProperties[kPropertySet] of pObjectLongID into tProps
-   put xDataA["exportPath"] & "/" & xDataA["fileName"] into tFullFilePath
+   put tProps["fileSeconds"] into xDataA["files"][xDataA["fileName"]]
+   put xDataA["exportPath"] & xDataA["fileName"] into tFullFilePath
    put messageDigest(tScript, kDigestType) into tHash
    
    put there is not a file tFullFilePath into tFileMissing
@@ -323,6 +365,7 @@ command saveScriptFile \
    
    put _getFileSeconds(xDataA) into tProps["fileSeconds"]
    set the customProperties[kPropertySet] of pObjectLongID to tProps
+   put tProps["fileSeconds"] into xDataA["files"][xDataA["fileName"]]
 end saveScriptFile
 
 
