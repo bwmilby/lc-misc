@@ -15,11 +15,12 @@ Script "stack_ScriptTracker_button_id_1003"
 * is changed, and allow for editing of scripts outside of the IDE.
 *
 * Preferences are stored in a custom property set on the main stack.
-*   exportPath           Folder path for stack script export (relative)
-*   diffPath             Folder path for stack script export diffs (relative)
-*   collisionPolicy      How changes to script and file are handled
+*   CollisionPolicy      How changes to script and file are handled
+*   DiffPath             Folder path for stack script export diffs (relative)
+*   ExportPath           Folder path for stack script export (relative)
+*   ExtraPath            Folder path for extra files (relative)
 *
-* Variables available for merge with DefaultDiffPath and DefaultExportPath
+* Variables available for merge with Default DiffPath and Default ExportPath
 *   [[tExportPath]]      evaluated path for script exports
 *   [[tStackFileName]]   root of the file name of the main stack
 *
@@ -27,12 +28,12 @@ Script "stack_ScriptTracker_button_id_1003"
 *   CollisionPolicy     choose which version of the script is retained when a
 *                       change is noticed in both the file and stack
 *                       options:  Script, File, Skip, Ask
-*                       (Skip makes no changes to the file but the diff is
-*                        included; Script or File will keep that version and
-*                        update the file to match)
-*   DefaultDiffPath     relative path for diff files, merged
-*   DefaultExtraPath    relative path for extra files, merged
-*   DefaultExportPath   relative path for export files, merged
+*                          (Skip makes no changes to the file but the diff is
+*                          included; Script or File will keep that version and
+*                          update the file to match)
+*   DiffPath            relative path for diff files, merged
+*   ExportPath          relative path for export files, merged
+*   ExtraPath           relative path for extra files, merged
 *   DiffContext         number of lines on either side of each diff
 *   DigestType          digest algorithm to use, suggest MD5
 *   FileMethod          "binfile:" works for Mac/Linux (LF)
@@ -45,10 +46,10 @@ Script "stack_ScriptTracker_button_id_1003"
 *
 * xDataA structure:
 *    ["mainStack"]            Short name of main stack
-*    ["exportPath"]           Folder path for stack script exports
-*    ["diffPath"]             Folder path for stack diff export
-*    ["extraPath"]            Folder path for extra files
-*    ["collisionPolicy"]      How changes to script and file are handled
+*    ["ExportPath"]           Folder path for stack script exports
+*    ["DiffPath"]             Folder path for stack diff export
+*    ["ExtraPath"]            Folder path for extra files
+*    ["CollisionPolicy"]      How changes to script and file are handled
 *    [stack short name]       Short name of stack/substack
 *       ["longID"]            Long ID of stack
 *       ["backgroundIDs"]     List of background group IDs
@@ -112,26 +113,26 @@ command buildMainStackArray \
    put the customProperties[sPropertySet] of stack pStackName into tProps
    
    // set path for script exports
-   ensureDirectoryExists tBasePath, merge(sPrefsA["DefaultExportPath"]), \
-         xDataA["exportPath"], tProps["exportPath"]
+   ensureDirectoryExists tBasePath, merge(sPrefsA["ExportPath"]), \
+         xDataA["ExportPath"], tProps["ExportPath"]
    if the result is "error" then exit buildMainStackArray
-   put tProps["exportPath"] into tExportPath
+   put tProps["ExportPath"] into tExportPath
    
    // set path for diff exports
-   ensureDirectoryExists tBasePath, merge(sPrefsA["DefaultDiffPath"]), \
-         xDataA["diffPath"], tProps["diffPath"]
+   ensureDirectoryExists tBasePath, merge(sPrefsA["DiffPath"]), \
+         xDataA["DiffPath"], tProps["DiffPath"]
    if the result is "error" then exit buildMainStackArray
    
    // set path for extra files
-   ensureDirectoryExists tBasePath, merge(sPrefsA["DefaultExtraPath"]), \
-         xDataA["extraPath"], tProps["extraPath"]
+   ensureDirectoryExists tBasePath, merge(sPrefsA["ExtraPath"]), \
+         xDataA["ExtraPath"], tProps["ExtraPath"]
    if the result is "error" then exit buildMainStackArray
    
    // set collision policy
-   if tProps["collisionPolicy"] is empty then
-      put sPrefsA["CollisionPolicy"] into tProps["collisionPolicy"]
+   if tProps["CollisionPolicy"] is empty then
+      put sPrefsA["CollisionPolicy"] into tProps["CollisionPolicy"]
    end if
-   put tProps["collisionPolicy"] into xDataA["collisionPolicy"]
+   put tProps["CollisionPolicy"] into xDataA["CollisionPolicy"]
    
    // save stack level preferences
    set the customProperties[sPropertySet] of stack pStackName to tProps
@@ -237,7 +238,7 @@ end exportStackScripts
 
 
 command saveDiffFile @xDataA
-   put xDataA["diff"] into URL (sFileMethod & xDataA["diffPath"] \
+   put xDataA["diff"] into URL (sFileMethod & xDataA["DiffPath"] \
          & "diff_" & the seconds & ".txt")
    delete variable xDataA["diff"]
 end saveDiffFile
@@ -246,12 +247,12 @@ end saveDiffFile
 command removeExtraFiles @xDataA
    local tFiles
    
-   put files(xDataA["exportPath"]) into tFiles
+   put files(xDataA["ExportPath"]) into tFiles
    filter tFiles with "stack*"
    repeat for each line tFile in tFiles
       if xDataA["files"][tFile] is empty then
-         rename file xDataA["exportPath"] & tFile to \
-               xDataA["extraPath"] & the seconds & "_" & tFile
+         rename file xDataA["ExportPath"] & tFile to \
+               xDataA["ExtraPath"] & the seconds & "_" & tFile
       end if
    end repeat
 end removeExtraFiles
@@ -309,7 +310,7 @@ command saveScriptFile \
    // check to see if the file needs to be updated
    put the customProperties[sPropertySet] of pObjectLongID into tProps
    put tProps["fileSeconds"] into xDataA["files"][xDataA["fileName"]]
-   put xDataA["exportPath"] & xDataA["fileName"] into tFullFilePath
+   put xDataA["ExportPath"] & xDataA["fileName"] into tFullFilePath
    put messageDigest(tScript, sDigestType) into tHash
    
    put there is not a file tFullFilePath into tFileMissing
@@ -339,7 +340,7 @@ command saveScriptFile \
    
    if tFileNewer and tScriptChanged then
       // changes in both file and IDE
-      put xDataA["collisionPolicy"] into tCollisionPolicy
+      put xDataA["CollisionPolicy"] into tCollisionPolicy
       if tCollisionPolicy is "Ask" then
          answer warning "Changes were found in both the script and" \
                && xDataA["fileName"] & "." & lf & \
@@ -492,7 +493,7 @@ end _groupComment
 private function _getFileSeconds @xDataA
    local tFileList
    
-   put files(xDataA["exportPath"], "detailed") into tFileList
+   put files(xDataA["ExportPath"], "detailed") into tFileList
    filter tFileList with xDataA["fileName"] & "*"
    return item 5 of line 1 of tFileList
 end _getFileSeconds

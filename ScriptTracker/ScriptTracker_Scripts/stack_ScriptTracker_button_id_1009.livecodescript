@@ -18,18 +18,25 @@ on mouseUp
    local tStackName, tStartMS, tStartTime
    
    if the hilite of me is true then
+      -- Verify that stack exists
+      put field "StackName" of this card into tStackName
+      if there is not a stack tStackName then
+         anwswer "Stack not found: " & _q(tStackName)
+         set the hilite of me to false
+         exit mouseUp
+      end if
+
       -- Do an initial sync:
-      clearLog
       put the milliseconds into tStartMS
       put the long time into tStartTime
-      put field "StackName" of this card into tStackName
+      clearLog
       buildMainStackArray tStackName, sDataA
       exportMainStackScripts tStackName, sDataA
       addToLog "Start time:" && tStartTime && "Finish time:" && the long time
       addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
       
       -- Start watching:
-      put sDataA["exportPath"] into sFolderToWatch
+      put sDataA["ExportPath"] into sFolderToWatch
       WatchFolder "UpdateScripts"
    else
       -- Stop watching:

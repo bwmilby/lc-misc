@@ -79,9 +79,9 @@ end savePrefs
 command initializePrefs
    delete variable sPrefsA
    put kCollisionPolicy into sPrefsA["CollisionPolicy"]
-   put kDefaultDiffPath into sPrefsA["DefaultDiffPath"]
-   put kDefaultExportPath into sPrefsA["DefaultExportPath"]
-   put kDefaultExtraPath into sPrefsA["DefaultExtraPath"]
+   put kDefaultDiffPath into sPrefsA["DiffPath"]
+   put kDefaultExportPath into sPrefsA["ExportPath"]
+   put kDefaultExtraPath into sPrefsA["ExtraPath"]
    put kDiffContext into sPrefsA["DiffContext"]
    put kDigestType into sPrefsA["DigestType"]
    put kFileMethod into sPrefsA["FileMethod"]

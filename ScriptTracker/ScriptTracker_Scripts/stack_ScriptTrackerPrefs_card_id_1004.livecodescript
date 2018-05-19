@@ -12,8 +12,7 @@ local sPrefsA
 
 on preOpenCard
    put getPrefsA() into sPrefsA
-   repeat for each item tPref in "DefaultDiffPath,DefaultExportPath," & \
-         "DefaultExtraPath"
+   repeat for each item tPref in "DiffPath,ExportPath,ExtraPath"
       set the text of field tPref to sPrefsA[tPref]
    end repeat
    set the label of button "CollisionPolicy" to sPrefsA["CollisionPolicy"]
@@ -23,8 +22,7 @@ end preOpenCard
 on closeCard
    local tPrefsChanged
    
-   repeat for each item tPref in "DefaultDiffPath,DefaultExportPath," & \
-         "DefaultExtraPath"
+   repeat for each item tPref in "DiffPath,ExportPath,ExtraPath"
       checkPref tPref, the text of field tPref, sPrefsA, tPrefsChanged
    end repeat
    checkPref "CollisionPolicy", the label of button "CollisionPolicy", \

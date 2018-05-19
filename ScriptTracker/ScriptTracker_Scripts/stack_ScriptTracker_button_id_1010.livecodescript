@@ -6,7 +6,7 @@ Script "stack_ScriptTracker_button_id_1010"
 */
 
 
-on mouseUp pButtonNumber
+on mouseUp
    palette this stack
    if the mode of stack "ScriptTrackerLog" is 1 then
       palette stack "ScriptTrackerLog"
