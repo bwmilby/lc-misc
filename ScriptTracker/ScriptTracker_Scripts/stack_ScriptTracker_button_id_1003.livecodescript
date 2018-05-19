@@ -19,22 +19,28 @@ Script "stack_ScriptTracker_button_id_1003"
 *   diffPath             Folder path for stack script export diffs (relative)
 *   collisionPolicy      How changes to script and file are handled
 *
-* Variables available for merge with kDefaultDiffPath and kDefaultExportPath
+* Variables available for merge with DefaultDiffPath and DefaultExportPath
 *   [[tExportPath]]      evaluated path for script exports
 *   [[tStackFileName]]   root of the file name of the main stack
 *
-* Constants are set with default values for preference options.
-*   kCollisionPolicy     how changes to script and file are handled
-*                        options:  Script, File, Skip, Ask
-*   kDefaultDiffPath     relative path for diff files, merged
-*   kDefaultExtraPath    relative path for extra files, merged
-*   kDefaultExportPath   relative path for export files, merged
-*   kDiffContext         number of lines on either side of each diff
-*   kDigestType          digest algorithm to use, suggest MD5
-*   kFileMethod          "binfile:" works for Mac/Linux (LF)
-*                        "file:" will convert to CRLF for Windows
-*                        "file:" is always used for importing scripts
-*   kPropertySet         name of the custom property set to use for tracking
+* Preferences that are used in this script
+*   CollisionPolicy     choose which version of the script is retained when a
+*                       change is noticed in both the file and stack
+*                       options:  Script, File, Skip, Ask
+*                       (Skip makes no changes to the file but the diff is
+*                        included; Script or File will keep that version and
+*                        update the file to match)
+*   DefaultDiffPath     relative path for diff files, merged
+*   DefaultExtraPath    relative path for extra files, merged
+*   DefaultExportPath   relative path for export files, merged
+*   DiffContext         number of lines on either side of each diff
+*   DigestType          digest algorithm to use, suggest MD5
+*   FileMethod          "binfile:" works for Mac/Linux (LF)
+*                       "file:" will convert to CRLF for Windows
+*                       "file:" is always used for importing scripts
+*   PropertySet         name of the custom property set to use for tracking
+*                       where the hash and file time stamp are kept for each
+*                       object and stack level preferences are stored
 *
 *
 * xDataA structure:
@@ -56,15 +62,21 @@ Script "stack_ScriptTracker_button_id_1003"
 
 
 //>CONSTANTS
-constant kCollisionPolicy = "Ask"
-constant kDefaultDiffPath = "[[tExportPath]]/diff"
-constant kDefaultExportPath = "[[tStackFileName]]_Scripts"
-constant kDefaultExtraPath = "[[tExportPath]]/extra"
-constant kDiffContext = 2
-constant kDigestType = "MD5"
-constant kFileMethod = "binfile:"
-constant kPropertySet = "bwmScriptTracker"
 constant kPropertySetToDelete = "bwmSmartScriptOld"
+
+//>LOCALS
+local sDiffContext, sDigestType, sFileMethod, sPrefsA, sPropertySet
+
+
+command initializePrefs
+   if sPrefsA is not empty then exit initializePrefs
+   
+   put getPrefsA() into sPrefsA
+   put sPrefsA["DiffContext"] into sDiffContext
+   put sPrefsA["DigestType"] into sDigestType
+   put sPrefsA["FileMethod"] into sFileMethod
+   put sPrefsA["PropertySet"] into sPropertySet
+end initializePrefs
 
 
 command buildMainStackArray \
@@ -78,6 +90,9 @@ command buildMainStackArray \
       answer "Stack" && pStackName && "not found."
       exit buildMainStackArray
    end if
+   
+   // get the current preferences
+   initializePrefs
    
    // get stack path and stack file name without extension
    put char 2 to -2 of word -1 of the long id of stack pStackName into tBasePath
@@ -94,32 +109,32 @@ command buildMainStackArray \
    if char -1 of tBasePath is not "/" then put "/" after tBasePath
    
    // get stack level preferences
-   put the customProperties[kPropertySet] of stack pStackName into tProps
+   put the customProperties[sPropertySet] of stack pStackName into tProps
    
    // set path for script exports
-   ensureDirectoryExists tBasePath, merge(kDefaultExportPath), \
+   ensureDirectoryExists tBasePath, merge(sPrefsA["DefaultExportPath"]), \
          xDataA["exportPath"], tProps["exportPath"]
    if the result is "error" then exit buildMainStackArray
    put tProps["exportPath"] into tExportPath
    
    // set path for diff exports
-   ensureDirectoryExists tBasePath, merge(kDefaultDiffPath), \
+   ensureDirectoryExists tBasePath, merge(sPrefsA["DefaultDiffPath"]), \
          xDataA["diffPath"], tProps["diffPath"]
    if the result is "error" then exit buildMainStackArray
    
    // set path for extra files
-   ensureDirectoryExists tBasePath, merge(kDefaultExtraPath), \
+   ensureDirectoryExists tBasePath, merge(sPrefsA["DefaultExtraPath"]), \
          xDataA["extraPath"], tProps["extraPath"]
    if the result is "error" then exit buildMainStackArray
    
    // set collision policy
    if tProps["collisionPolicy"] is empty then
-      put kCollisionPolicy into tProps["collisionPolicy"]
+      put sPrefsA["CollisionPolicy"] into tProps["collisionPolicy"]
    end if
    put tProps["collisionPolicy"] into xDataA["collisionPolicy"]
    
    // save stack level preferences
-   set the customProperties[kPropertySet] of stack pStackName to tProps
+   set the customProperties[sPropertySet] of stack pStackName to tProps
    
    put pStackName into xDataA["mainStack"]
    
@@ -222,7 +237,7 @@ end exportStackScripts
 
 
 command saveDiffFile @xDataA
-   put xDataA["diff"] into URL (kFileMethod & xDataA["diffPath"] \
+   put xDataA["diff"] into URL (sFileMethod & xDataA["diffPath"] \
          & "diff_" & the seconds & ".txt")
    delete variable xDataA["diff"]
 end saveDiffFile
@@ -292,14 +307,14 @@ command saveScriptFile \
    set the customPropertySets of pObjectLongID to tPropSets
    
    // check to see if the file needs to be updated
-   put the customProperties[kPropertySet] of pObjectLongID into tProps
+   put the customProperties[sPropertySet] of pObjectLongID into tProps
    put tProps["fileSeconds"] into xDataA["files"][xDataA["fileName"]]
    put xDataA["exportPath"] & xDataA["fileName"] into tFullFilePath
-   put messageDigest(tScript, kDigestType) into tHash
+   put messageDigest(tScript, sDigestType) into tHash
    
    put there is not a file tFullFilePath into tFileMissing
    put (_getFileSeconds(xDataA) > tProps["fileSeconds"]) into tFileNewer
-   put tProps[kDigestType] is not tHash into tScriptChanged
+   put tProps[sDigestType] is not tHash into tScriptChanged
    
    if not (tFileMissing or tFileNewer or tScriptChanged) then
       // no changes
@@ -309,14 +324,14 @@ command saveScriptFile \
    if not tFileMissing then
       put URL ("file:" & tFullFilePath) into tFileScript
       if tFileNewer then
-         put messageDigest(tFileScript, kDigestType) into tFileHash
+         put messageDigest(tFileScript, sDigestType) into tFileHash
          if tHash is tFileHash then put false into tFileNewer
       end if
       if tFileNewer then
-         put diffCompare(tScript,tFileScript,kDiffContext) into tDiff
+         put diffCompare(tScript,tFileScript,sDiffContext) into tDiff
          put tFullFilePath & lf & pObjectLongID & lf & lf before tDiff
       else if tScriptChanged then
-         put diffCompare(tFileScript,tScript,kDiffContext) into tDiff
+         put diffCompare(tFileScript,tScript,sDiffContext) into tDiff
          put pObjectLongID & lf & tFullFilePath & lf & lf before tDiff
       end if
       if tDiff is not empty then put tDiff & lf & lf after xDataA["diff"]
@@ -347,7 +362,7 @@ command saveScriptFile \
    end if
    
    if tFileNewer then
-      put tFileHash into tProps[kDigestType]
+      put tFileHash into tProps[sDigestType]
       _removeHeader tFileScript
       addToLog xDataA["fileName"] && "changed outside of IDE"
       try
@@ -358,13 +373,13 @@ command saveScriptFile \
                to this card in 500 milliseconds
       end try
    else if tFileMissing or tScriptChanged then
-      put tHash into tProps[kDigestType]
-      put tScript into URL (kFileMethod & tFullFilePath)
+      put tHash into tProps[sDigestType]
+      put tScript into URL (sFileMethod & tFullFilePath)
       addToLog xDataA["fileName"] && "exported"
    end if
    
    put _getFileSeconds(xDataA) into tProps["fileSeconds"]
-   set the customProperties[kPropertySet] of pObjectLongID to tProps
+   set the customProperties[sPropertySet] of pObjectLongID to tProps
    put tProps["fileSeconds"] into xDataA["files"][xDataA["fileName"]]
 end saveScriptFile
 

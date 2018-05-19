@@ -17,6 +17,7 @@ on openStack
    set the hilite of button "Automatic" of me to false
    put empty into field "log" of stack "ScriptTrackerLog"
    put empty into field "count"
+   loadPrefs
 end openStack
 
 
@@ -39,6 +40,9 @@ on saveStackRequest
    set the text of button "StackMenu" to empty
    pass saveStackRequest
 end saveStackRequest
+
+
+// Logging handlers
 
 
 command addToLog pText, pScrollToBottom
@@ -83,6 +87,9 @@ command clearCount
    put 0 into sCount
    put sCount into field "count"
 end clearCount
+
+
+// Delayed update handler
 
 
 command updateRunningScriptLater \

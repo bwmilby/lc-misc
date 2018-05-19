@@ -11,4 +11,7 @@ on mouseUp pButtonNumber
    if the mode of stack "ScriptTrackerLog" is 1 then
       palette stack "ScriptTrackerLog"
    end if
+   if the mode of stack "ScriptTrackerPrefs" is 1 then
+      palette stack "ScriptTrackerPrefs"
+   end if
 end mouseUp

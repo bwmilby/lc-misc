@@ -12,4 +12,7 @@ on mouseUp pButtonNumber
    if the mode of stack "ScriptTrackerLog" is 4 then
       toplevel stack "ScriptTrackerLog"
    end if
+   if the mode of stack "ScriptTrackerPrefs" is 4 then
+      toplevel stack "ScriptTrackerPrefs"
+   end if
 end mouseUp
