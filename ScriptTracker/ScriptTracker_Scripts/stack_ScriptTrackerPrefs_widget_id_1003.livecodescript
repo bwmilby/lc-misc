@@ -1,8 +1,9 @@
 Script "stack_ScriptTrackerPrefs_widget_id_1003"
 
 /*
-# Name: widget "Segmented Control" of group id 1006 of card "ScriptTracker" of stack "ScriptTrackerPrefs" of stack "ScriptTracker"
-# ID: widget id 1003 of group id 1006 of card id 1002 of stack "ScriptTrackerPrefs" of stack "ScriptTracker"
+# Name: widget "Segmented Control" of bkgnd id 1006 of stack "ScriptTrackerPrefs" of stack "ScriptTracker"
+# ID: widget id 1003 of bkgnd id 1006 of stack "ScriptTrackerPrefs" of stack "ScriptTracker"
+# Widget Kind: com.livecode.widget.segmented
 */
 
 

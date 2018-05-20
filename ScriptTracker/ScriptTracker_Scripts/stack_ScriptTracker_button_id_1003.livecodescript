@@ -1,7 +1,7 @@
 Script "stack_ScriptTracker_button_id_1003"
 
 /*
-# Name: button "ScriptTrackerBehavior" of card id 1002 of stack "ScriptTracker"
+# Name: button "ScriptTrackerBehavior" of card "Tracker" of stack "ScriptTracker"
 # ID: button id 1003 of card id 1002 of stack "ScriptTracker"
 */
 
@@ -46,6 +46,7 @@ Script "stack_ScriptTracker_button_id_1003"
 *
 * xDataA structure:
 *    ["mainStack"]            Short name of main stack
+*    ["mainStackFile"]        File name of main stack
 *    ["ExportPath"]           Folder path for stack script exports
 *    ["DiffPath"]             Folder path for stack diff export
 *    ["ExtraPath"]            Folder path for extra files
@@ -66,7 +67,8 @@ Script "stack_ScriptTracker_button_id_1003"
 constant kPropertySetToDelete = "bwmSmartScriptOld"
 
 //>LOCALS
-local sDiffContext, sDigestType, sFileMethod, sPrefsA, sPropertySet
+local sDiffContext, sDigestType, sFileMethod, sMainStack, sPrefsA
+local sPropertySet
 
 
 command initializePrefs
@@ -92,16 +94,28 @@ command buildMainStackArray \
       exit buildMainStackArray
    end if
    
+   if pStackName is not sMainStack then
+      delete variable sPrefsA
+      put pStackName into sMainStack
+   end if
+   
    // get the current preferences
    initializePrefs
    
-   // get stack path and stack file name without extension
-   put char 2 to -2 of word -1 of the long id of stack pStackName into tBasePath
+   put pStackName into xDataA["mainStack"]
+   put char 2 to -2 of word -1 of the long id of stack pStackName \
+         into xDataA["mainStackFile"]
+   
+   // get stack path
    set the itemdel to "/"
-   put item -1 of tBasePath into tStackFileName
-   delete item -1 of tBasePath
+   put item 1 to -2 of xDataA["mainStackFile"] into tBasePath
+   
+   // get stack file name without extension
+   put item -1 of xDataA["mainStackFile"] into tStackFileName
    set the itemdel to "."
-   delete item -1 of tStackFileName
+   if item 1 to -2 of tStackFileName is not empty then
+      delete item -1 of tStackFileName
+   end if
    
    // if pPath provided, use it as the base path
    if pPath is not empty then
@@ -136,8 +150,6 @@ command buildMainStackArray \
    
    // save stack level preferences
    set the customProperties[sPropertySet] of stack pStackName to tProps
-   
-   put pStackName into xDataA["mainStack"]
    
    // add object ID lists to array (backgrounds, shared groups, cards, substacks)
    buildStackArray pStackName, xDataA
@@ -181,7 +193,10 @@ command buildStackArray \
       @xDataA       /* export data array         */
    local tStackLongID
    
-   put the long id of stack pStackName into tStackLongID
+   put "stack" && _q(pStackName) into tStackLongID
+   if pStackName is not xDataA["mainStack"] then
+      put " of stack" && _q(xDataA["mainStack"]) after tStackLongID
+   end if
    put tStackLongID into xDataA[pStackName]["longID"]
    put the backgroundIDs of tStackLongID into xDataA[pStackName]["backgroundIDs"]
    put the sharedGroupIDs of tStackLongID into xDataA[pStackName]["sharedGroupIDs"]
@@ -213,26 +228,33 @@ end exportMainStackScripts
 command exportStackScripts \
       pStackName,   /* stack short name          */ \
       @xDataA       /* export data array         */
-   local tObjectLongID, tStackLongID
+   local tObjectLongID, tObjectLongName, tStackLongID
    
    // save the stack script
    put xDataA[pStackName]["longID"] into tStackLongID
-   saveScriptFile pStackName, xDataA, tStackLongID
+   saveScriptFile pStackName, xDataA, tStackLongID, tStackLongID
+   
+   // Manually build all long IDs so that the short stack name is used
+   // and to ensure that references do not change based on whether a
+   // card has been visited and which card is currently selected
    
    // save background and shared group scripts and objects
    repeat for each line tObjectID in xDataA[pStackName]["sharedGroupIDs"]
       // background/shared groups can provide inconsistent long IDs
       // force a short version that does not use group/card
       put "bkgnd id" && tObjectID && "of" && tStackLongID into tObjectLongID
-      saveScriptFile pStackName, xDataA, tObjectLongID
-      exportChildContolScripts pStackName, xDataA, tObjectLongID
+      put _longName(tObjectLongID, tStackLongID) into tObjectLongName
+      put "bkgnd" into word 1 of tObjectLongName
+      saveScriptFile pStackName, xDataA, tObjectLongID, tObjectLongName
+      exportChildContolScripts pStackName, xDataA, tObjectLongID, tObjectLongName
    end repeat
    
    // save card scripts and objects
    repeat for each line tObjectID in xDataA[pStackName]["cardIDs"]
-      put the long id of card id tObjectID of tStackLongID into tObjectLongID
-      saveScriptFile pStackName, xDataA, tObjectLongID
-      exportChildContolScripts pStackName, xDataA, tObjectLongID
+      put "card id" && tObjectID && "of" && tStackLongID into tObjectLongID
+      put _longName(tObjectLongID, tStackLongID) into tObjectLongName
+      saveScriptFile pStackName, xDataA, tObjectLongID, tObjectLongName
+      exportChildContolScripts pStackName, xDataA, tObjectLongID, tObjectLongName
    end repeat
 end exportStackScripts
 
@@ -259,10 +281,12 @@ end removeExtraFiles
 
 
 command exportChildContolScripts \
-      pStackName,   /* stack short name          */ \
-      @xDataA,      /* export data array         */ \
-      pObjectLongID /* long ID of parent control */
-   local tChildControlIDs, tControlLongID, tSharedGroupIDs, tStackLongID
+      pStackName,     /* stack short name            */ \
+      @xDataA,        /* export data array           */ \
+      pObjectLongID,  /* long ID of parent control   */ \
+      pObjectLongName /* long name of parent control */
+   local tChildControlIDs, tControlLongID, tControlLongName, tSharedGroupIDs
+   local tStackLongID
    
    if the dgProps["Control Type"] of pObjectLongID is "Data Grid" then
       // do not export the automatically generated dgGrid groups and controls
@@ -281,24 +305,29 @@ command exportChildContolScripts \
    
    repeat for each line tControlID in tChildControlIDs
       if tControlID is among the lines of tSharedGroupIDs then next repeat
-      put the long id of control id tControlID of tStackLongID into tControlLongID
-      saveScriptFile pStackName, xDataA, tControlLongID
-      exportChildContolScripts pStackName, xDataA, tControlLongID
+      put the abbreviated id of control id tControlID of tStackLongID && "of" \
+            && pObjectLongID into tControlLongID
+      put _longName(tControlLongID, pObjectLongName) into tControlLongName
+      saveScriptFile pStackName, xDataA, tControlLongID, tControlLongName
+      exportChildContolScripts pStackName, xDataA, tControlLongID, tControlLongName
    end repeat
 end exportChildContolScripts
 
 
 command saveScriptFile \
-      pStackName,   /* stack short name          */ \
-      @xDataA,      /* export data array         */ \
-      pObjectLongID /* long ID of control        */
+      pStackName,     /* stack short name          */ \
+      @xDataA,        /* export data array         */ \
+      pObjectLongID,  /* long ID of control        */ \
+      pObjectLongName /* long name of control      */
    local tCollisionPolicy, tDiff, tFileHash, tFileMissing, tFileNewer
    local tFileScript, tFullFilePath, tHash, tProps, tPropSets
    local tScript, tScriptChanged
    
-   if pObjectLongID is empty then put xDataA[pStackName]["longID"] into pObjectLongID
+   if pObjectLongID is empty then
+      put xDataA[pStackName]["longID"] into pObjectLongID
+   end if
    
-   put _buildFile(pStackName, xDataA, pObjectLongID) into tScript
+   put _buildFile(pStackName, xDataA, pObjectLongID, pObjectLongName) into tScript
    if tScript is empty then exit saveScriptFile
    addToCount
    
@@ -388,10 +417,14 @@ end saveScriptFile
 command loadScriptFile \
       pFileName,    /* file name to load         */ \
       @xDataA       /* export data array         */
-   local tFileScript, tObjectLongID, tOffset, tStackName
+   local tFileScript, tObjectLongID, tObjectLongName, tOffset
+   local tStackName
    
    put line 1 to 8 of URL ("file:" & pFileName) into tFileScript
    
+   put offset("# Name:",tFileScript)+7 into tOffset
+   delete char 1 to tOffset of tFileScript
+   put line 1 of tFileScript into tObjectLongName
    put offset("# ID:",tFileScript)+5 into tOffset
    delete char 1 to tOffset of tFileScript
    put line 1 of tFileScript into tObjectLongID
@@ -409,7 +442,7 @@ command loadScriptFile \
       put char 2 to -2 of word -1 of tObjectLongID into tStackName
    end if
    
-   saveScriptFile tStackName, xDataA, tObjectLongID
+   saveScriptFile tStackName, xDataA, tObjectLongID, tObjectLongName
 end loadScriptFile
 
 
@@ -429,9 +462,10 @@ end _removeHeader
 
 
 private function _buildFile \
-      pStackName,   /* stack short name          */ \
-      @xDataA,      /* export data array         */ \
-      pObjectLongID /* long ID of control        */
+      pStackName,     /* stack short name          */ \
+      @xDataA,        /* export data array         */ \
+      pObjectLongID,  /* long ID of control        */ \
+      pObjectLongName /* long name of control      */
    local tBehavior, tFileName, tHeader, tScript
    
    if pObjectLongID is empty then return empty
@@ -454,13 +488,13 @@ private function _buildFile \
    put tFileName & ".livecodescript" into xDataA["fileName"]
    
    // build file header
-   put "Script" && quote & tFileName & quote & lf & lf into tHeader
+   put "Script" && _q(tFileName) & lf & lf into tHeader
    put "/*" & lf after tHeader
-   put "# Name:" && _getObjectLongName(pObjectLongID, \
-         xDataA[pStackName]["longID"]) & lf after tHeader
-   put _q(xDataA["mainStack"]) into word -1 of line -1 of tHeader
+   put "# Name:" && pObjectLongName & lf after tHeader
    put "# ID:" && pObjectLongID & lf after tHeader
-   put _q(xDataA["mainStack"]) into word -1 of line -1 of tHeader
+   if word 1 of pObjectLongID is "widget" then
+      put "# Widget Kind:" && the kind of pObjectLongID & lf after tHeader
+   end if
    put tBehavior after tHeader
    put _groupComment(pStackName, xDataA, pObjectLongID) after tHeader
    put "*/" & lf after tHeader
@@ -499,24 +533,9 @@ private function _getFileSeconds @xDataA
 end _getFileSeconds
 
 
-private function _getObjectLongName pObjectLongID, pStackLongID
-   local tObjectLongName, tObjectShortName
-   
-   // background/shared groups can provide inconsistent long names
-   // force a short version that does not use group/card
-   if word 1 of pObjectLongID is "bkgnd" then
-      put the short name of pObjectLongID into tObjectShortName
-      if word 2 of tObjectShortName is "id" then
-         put pObjectLongID into tObjectLongName
-      else
-         put "bkgnd" && _q(tObjectShortName) && "of" && pStackLongID \
-               into tObjectLongName
-      end if
-   else
-      put the long name of pObjectLongID into tObjectLongName
-   end if
-   return tObjectLongName
-end _getObjectLongName
+private function _longName pObjectLongID, pParentLongName
+   return the abbreviated name of pObjectLongID && "of" && pParentLongName
+end _longName
 
 
 function _q pText

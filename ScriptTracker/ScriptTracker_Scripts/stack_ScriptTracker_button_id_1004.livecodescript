@@ -1,7 +1,7 @@
 Script "stack_ScriptTracker_button_id_1004"
 
 /*
-# Name: button "SyncScripts" of card id 1002 of stack "ScriptTracker"
+# Name: button "SyncScripts" of card "Tracker" of stack "ScriptTracker"
 # ID: button id 1004 of card id 1002 of stack "ScriptTracker"
 # Behavior: button id 1003 of stack "ScriptTracker"
 */

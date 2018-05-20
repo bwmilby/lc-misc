@@ -1,7 +1,7 @@
 Script "stack_ScriptTracker_card_id_1002"
 
 /*
-# Name: card id 1002 of stack "ScriptTracker"
+# Name: card "Tracker" of stack "ScriptTracker"
 # ID: card id 1002 of stack "ScriptTracker"
 */
 
