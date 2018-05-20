@@ -67,13 +67,11 @@ Script "stack_ScriptTracker_button_id_1003"
 constant kPropertySetToDelete = "bwmSmartScriptOld"
 
 //>LOCALS
-local sDiffContext, sDigestType, sFileMethod, sMainStack, sPrefsA
+local sDiffContext, sDigestType, sFileMethod, sPrefsA
 local sPropertySet
 
 
 command initializePrefs
-   if sPrefsA is not empty then exit initializePrefs
-   
    put getPrefsA() into sPrefsA
    put sPrefsA["DiffContext"] into sDiffContext
    put sPrefsA["DigestType"] into sDigestType
@@ -92,11 +90,6 @@ command buildMainStackArray \
    if there is not a stack pStackName then
       answer "Stack" && pStackName && "not found."
       exit buildMainStackArray
-   end if
-   
-   if pStackName is not sMainStack then
-      delete variable sPrefsA
-      put pStackName into sMainStack
    end if
    
    // get the current preferences

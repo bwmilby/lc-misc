@@ -38,6 +38,7 @@ command setPrefsA pPrefsA
       put pPrefsA[tPref] into sPrefsA[tPref]
    end repeat
    savePrefs
+   restartAutoSync
 end setPrefsA
 
 
@@ -45,6 +46,7 @@ command setPref pPref, pValue
    if sPrefsA is empty then loadPrefs
    put pValue into sPrefsA[pPref]
    savePrefs
+   restartAutoSync
 end setPref
 
 
@@ -93,3 +95,13 @@ end initializePrefs
 function prefsFileName
    return revEnvironmentUserPreferencesPath() & "/bwmScriptTracker.lson"
 end prefsFileName
+
+
+on restartAutoSync
+   if the hilite of button "Automatic" of card "Tracker" \
+         of stack "ScriptTracker" is true then
+      send "mouseUp" to button "Automatic" of card "Tracker" \
+            of stack "ScriptTracker"
+      exit to top
+   end if
+end restartAutoSync

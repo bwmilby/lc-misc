@@ -32,16 +32,18 @@ on closeCard
          sPrefsA, tPrefsChanged
    if tPrefsChanged then
       set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
+      restartAutoSync
    end if
 end closeCard
 
 
 on reinitializePrefs
-   local tBasePath, tExportPath, tPrefsA, tStackFileName
+   local tExportPath, tPrefsA, tStackFileName
    
    // get stack file name without extension
    set the itemdel to "/"
-   put item -1 of (char 2 to -2 of word -1 of the long id of stack sStackName) into tStackFileName
+   put item -1 of (char 2 to -2 of word -1 of the long id of \
+         stack sStackName) into tStackFileName
    set the itemdel to "."
    delete item -1 of tStackFileName
    
@@ -54,4 +56,5 @@ on reinitializePrefs
    
    set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
    preOpenCard
+   restartAutoSync
 end reinitializePrefs

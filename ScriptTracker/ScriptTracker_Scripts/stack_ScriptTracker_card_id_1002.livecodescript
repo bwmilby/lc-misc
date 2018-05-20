@@ -42,6 +42,11 @@ on saveStackRequest
 end saveStackRequest
 
 
+on closeCard
+   set the hilite of button "Automatic" of me to false
+end closeCard
+
+
 // Logging handlers
 
 
