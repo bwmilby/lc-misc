@@ -6,6 +6,10 @@ Script "stack_ScriptTrackerPrefs_"
 */
 
 
+//>LOCALS
+local sPrefsA, sStackName
+
+
 on openCard
    set the hilitedItemNames of widget 1 of group 1 of this card \
          to the short name of this card
@@ -20,3 +24,96 @@ on checkPref pPref, pValue, @xPrefsA, @xPrefsChanged
    end if
 end checkPref
 
+
+on preOpenCard
+   if the short name of this card is "Stack" then
+      put field "StackName" of stack "ScriptTracker" into sStackName
+      put the customProperties[getPref(PropertySet)] of stack sStackName into sPrefsA
+      if sPrefsA is empty then
+         reinitializeStackPrefs
+         exit preOpenCard
+      end if
+   else
+      put getPrefsA() into sPrefsA
+   end if
+   repeat for each item tPref in the uCheckBoxes of this card
+      set the hilite of button tPref of this card to sPrefsA[tPref]
+   end repeat
+   repeat for each item tPref in the uTextFields of this card
+      set the text of field tPref of this card to sPrefsA[tPref]
+   end repeat
+   repeat for each item tPref in the uOptionMenus of this card
+      set the label of button tPref of this card to sPrefsA[tPref]
+   end repeat
+end preOpenCard
+
+
+on closeCard
+   local tPrefsChanged
+   
+   repeat for each item tPref in the uCheckBoxes of this card
+      checkPref tPref, the hilite of button tPref of this card, sPrefsA, tPrefsChanged
+   end repeat
+   repeat for each item tPref in the uTextFields of this card
+      checkPref tPref, the text of field tPref of this card, sPrefsA, tPrefsChanged
+   end repeat
+   repeat for each item tPref in the uOptionMenus of this card
+      checkPref tPref, the label of button tPref of this card, sPrefsA, tPrefsChanged
+   end repeat
+   if tPrefsChanged then
+      if the short name of this card is "Stack" then
+         set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
+         restartAutoSync
+      else
+         setPrefsA sPrefsA
+      end if
+   end if
+end closeCard
+
+
+on reinitializePrefs
+   local tPrefsA, tPrefsChanged
+   
+   if the short name of this card is "Stack" then
+      reinitializeStackPrefs
+      exit reinitializePrefs
+   end if
+   
+   put getDefaultPrefsA() into tPrefsA
+   repeat for each item tPref in the uCheckBoxes of this card
+      checkPref tPref, tPrefsA[tPref], sPrefsA, tPrefsChanged
+   end repeat
+   repeat for each item tPref in the uTextFields of this card
+      checkPref tPref, tPrefsA[tPref], sPrefsA, tPrefsChanged
+   end repeat
+   repeat for each item tPref in the uOptionMenus of this card
+      checkPref tPref, tPrefsA[tPref], sPrefsA, tPrefsChanged
+   end repeat
+   if tPrefsChanged then
+      setPrefsA sPrefsA
+      preOpenCard
+   end if
+end reinitializePrefs
+
+
+on reinitializeStackPrefs
+   local tExportPath, tPrefsA, tStackFileName
+   
+   // get stack file name without extension
+   set the itemdel to "/"
+   put item -1 of (char 2 to -2 of word -1 of the long id of \
+         stack sStackName) into tStackFileName
+   set the itemdel to "."
+   delete item -1 of tStackFileName
+   
+   put getPrefsA() into tPrefsA
+   put merge(tPrefsA["ExportPath"]) into tExportPath
+   put tExportPath into sPrefsA["ExportPath"]
+   put merge(tPrefsA["DiffPath"]) into sPrefsA["DiffPath"]
+   put merge(tPrefsA["ExtraPath"]) into sPrefsA["ExtraPath"]
+   put tPrefsA["CollisionPolicy"] into sPrefsA["CollisionPolicy"]
+   
+   set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
+   preOpenCard
+   restartAutoSync
+end reinitializeStackPrefs

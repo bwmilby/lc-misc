@@ -13,12 +13,15 @@ constant kScrollToBottom = "yes"
 local sCount, sLogBackup
 
 
-on openStack
+on openCard
    set the hilite of button "Automatic" of me to false
    put empty into field "log" of stack "ScriptTrackerLog"
    put empty into field "count"
    loadPrefs
-end openStack
+   insert the script of button "SyncBeforeSave" of card "ScriptTracker" \
+         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" into front
+   
+end openCard
 
 
 on resumeStack

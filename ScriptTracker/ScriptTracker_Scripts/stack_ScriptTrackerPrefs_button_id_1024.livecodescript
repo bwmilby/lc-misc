@@ -7,6 +7,5 @@ Script "stack_ScriptTrackerPrefs_button_id_1024"
 
 
 on mouseUp
-   initializePrefs
-   preOpenCard
+   reinitializePrefs
 end mouseUp

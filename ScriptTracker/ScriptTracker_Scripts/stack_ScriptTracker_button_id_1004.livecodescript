@@ -14,10 +14,8 @@ constant kScrollToBottom = "yes"
 on mouseUp
    local tDataA, tStackName, tStart, tStartMS, tStartTime
    
-   if the hilite of button "Automatic" of this card is true then
-      send "mouseUp" to button "Automatic" of this card
-      exit mouseUp
-   end if
+   restartAutoSync
+   if the result is "running" then exit mouseUp
    
    clearLog
    put the milliseconds into tStartMS

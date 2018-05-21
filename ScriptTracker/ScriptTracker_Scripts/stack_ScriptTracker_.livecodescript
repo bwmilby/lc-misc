@@ -15,6 +15,7 @@ constant kDiffContext = 3
 constant kDigestType = "MD5"
 constant kFileMethod = "binfile:"
 constant kPropertySet = "bwmScriptTracker"
+constant kSyncBeforeSave = false
 
 //>LOCALS
 local sPrefsA
@@ -80,16 +81,26 @@ end savePrefs
 
 command initializePrefs
    delete variable sPrefsA
-   put kCollisionPolicy into sPrefsA["CollisionPolicy"]
-   put kDefaultDiffPath into sPrefsA["DiffPath"]
-   put kDefaultExportPath into sPrefsA["ExportPath"]
-   put kDefaultExtraPath into sPrefsA["ExtraPath"]
-   put kDiffContext into sPrefsA["DiffContext"]
-   put kDigestType into sPrefsA["DigestType"]
-   put kFileMethod into sPrefsA["FileMethod"]
-   put kPropertySet into sPrefsA["PropertySet"]
+   put getDefaultPrefsA() into sPrefsA
    savePrefs
 end initializePrefs
+
+
+function getDefaultPrefsA
+   local tPrefsA
+   
+   put kCollisionPolicy into tPrefsA["CollisionPolicy"]
+   put kDefaultDiffPath into tPrefsA["DiffPath"]
+   put kDefaultExportPath into tPrefsA["ExportPath"]
+   put kDefaultExtraPath into tPrefsA["ExtraPath"]
+   put kDiffContext into tPrefsA["DiffContext"]
+   put kDigestType into tPrefsA["DigestType"]
+   put kFileMethod into tPrefsA["FileMethod"]
+   put kPropertySet into tPrefsA["PropertySet"]
+   put kSyncBeforeSave into tPrefsA["SyncBeforeSave"]
+   
+   return tPrefsA
+end getDefaultPrefsA
 
 
 function prefsFileName
@@ -102,6 +113,6 @@ on restartAutoSync
          of stack "ScriptTracker" is true then
       send "mouseUp" to button "Automatic" of card "Tracker" \
             of stack "ScriptTracker"
-      exit to top
+      return "running"
    end if
 end restartAutoSync
