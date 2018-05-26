@@ -7,6 +7,7 @@ Script "stack_ScriptTracker_"
 
 
 //>CONSTANTS
+constant kAutoExternalEditor = "false"
 constant kCollisionPolicy = "Ask"
 constant kDefaultDiffPath = "[[tExportPath]]/diff"
 constant kDefaultExportPath = "[[tStackFileName]]_Scripts"
@@ -15,7 +16,7 @@ constant kDiffContext = 3
 constant kDigestType = "MD5"
 constant kFileMethod = "binfile:"
 constant kPropertySet = "bwmScriptTracker"
-constant kSyncBeforeSave = false
+constant kSyncBeforeSave = "false"
 
 //>LOCALS
 local sPrefsA
@@ -98,6 +99,8 @@ function getDefaultPrefsA
    put kFileMethod into tPrefsA["FileMethod"]
    put kPropertySet into tPrefsA["PropertySet"]
    put kSyncBeforeSave into tPrefsA["SyncBeforeSave"]
+   put kAutoExternalEditor into tPrefsA["AutoExternalEditor"]
+   put revIDEGetPreference("LCB_textEditor") into tPrefsA["Editor"]
    
    return tPrefsA
 end getDefaultPrefsA
@@ -116,3 +119,13 @@ on restartAutoSync
       return "running"
    end if
 end restartAutoSync
+
+
+on ideEditScript pObject
+   if the hilite of button "Automatic" of card "Tracker" of stack "ScriptTracker" and \
+         the hilite of button "AutoExternalEditor" of card "ScriptTracker" \
+         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" then
+      send "ExternalEditScript pObject" to button "Automatic" of card "Tracker" \
+            of stack "ScriptTracker"
+   end if
+end ideEditScript

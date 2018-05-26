@@ -18,9 +18,9 @@ on openCard
    put empty into field "log" of stack "ScriptTrackerLog"
    put empty into field "count"
    loadPrefs
+   ideSubscribe "ideEditScript"
    insert the script of button "SyncBeforeSave" of card "ScriptTracker" \
          of stack "ScriptTrackerPrefs" of stack "ScriptTracker" into front
-   
 end openCard
 
 
@@ -48,6 +48,14 @@ end saveStackRequest
 on closeCard
    set the hilite of button "Automatic" of me to false
 end closeCard
+
+
+on closeStackRequest
+   revIDEUnsubscribe "ideEditScript"
+   remove the script of button "SyncBeforeSave" of card "ScriptTracker" \
+         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" from front
+   pass closeStackRequest
+end closeStackRequest
 
 
 // Logging handlers

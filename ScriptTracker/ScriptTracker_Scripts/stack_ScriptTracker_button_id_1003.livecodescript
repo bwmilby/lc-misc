@@ -1,8 +1,8 @@
 Script "stack_ScriptTracker_button_id_1003"
 
 /*
-# Name: button "ScriptTrackerBehavior" of card "Tracker" of stack "ScriptTracker"
-# ID: button id 1003 of card id 1002 of stack "ScriptTracker"
+# Name: button "ScriptTrackerBehavior" of card "Behaviors" of stack "ScriptTracker"
+# ID: button id 1003 of card id 1016 of stack "ScriptTracker"
 */
 
 
@@ -469,7 +469,8 @@ private function _buildFile \
    if (the behavior of pObjectLongID is not empty) then
       put "# Behavior:" && the behavior of pObjectLongID & lf into tBehavior
    end if
-   if tScript is empty and tBehavior is empty then
+   // add behavior indexing here
+   if tScript is empty then
       return empty
    end if
    

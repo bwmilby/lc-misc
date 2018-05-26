@@ -1,8 +1,8 @@
 Script "stack_ScriptTracker_button_id_1010"
 
 /*
-# Name: button "P" of card "Tracker" of stack "ScriptTracker"
-# ID: button id 1010 of card id 1002 of stack "ScriptTracker"
+# Name: button "P" of card "Behaviors" of stack "ScriptTracker"
+# ID: button id 1010 of card id 1016 of stack "ScriptTracker"
 */
 
 

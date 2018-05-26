@@ -7,14 +7,16 @@ Script "stack_ScriptTrackerPrefs_button_id_1036"
 
 
 on SaveStackRequest
-   local tStack, tTarget
+   local tSyncStack, tTarget
    
    if the hilite of button "SyncBeforeSave" of card "ScriptTracker" \
          of stack "ScriptTrackerPrefs" of stack "ScriptTracker" then
-      put the text of field "StackName" of card "Tracker" of stack "ScriptTracker" into tStack
-      put char 2 to -2 of word 2 of the owner of the target into tTarget
-      if tStack is tTarget then
-         send "mouseUp" to button "SyncScripts" of card "Tracker" of stack "ScriptTracker"
+      put the text of field "StackName" of card "Tracker" of \
+            stack "ScriptTracker" into tSyncStack
+      put the short name of (word -2 to -1 of the long id of the target) into tTarget
+      if tSyncStack is tTarget then
+         send "mouseUp" to button "SyncScripts" of card "Tracker" of \
+               stack "ScriptTracker"
       end if
    end if
    pass SaveStackRequest

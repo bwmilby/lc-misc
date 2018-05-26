@@ -36,6 +36,16 @@ on preOpenCard
    else
       put getPrefsA() into sPrefsA
    end if
+   displayPrefs
+end preOpenCard
+
+
+on closeCard
+   saveUpdatedPrefs
+end closeCard
+
+
+on displayPrefs
    repeat for each item tPref in the uCheckBoxes of this card
       set the hilite of button tPref of this card to sPrefsA[tPref]
    end repeat
@@ -45,10 +55,10 @@ on preOpenCard
    repeat for each item tPref in the uOptionMenus of this card
       set the label of button tPref of this card to sPrefsA[tPref]
    end repeat
-end preOpenCard
+end displayPrefs
 
 
-on closeCard
+on saveUpdatedPrefs
    local tPrefsChanged
    
    repeat for each item tPref in the uCheckBoxes of this card
@@ -68,7 +78,7 @@ on closeCard
          setPrefsA sPrefsA
       end if
    end if
-end closeCard
+end saveUpdatedPrefs
 
 
 on reinitializePrefs
@@ -91,8 +101,8 @@ on reinitializePrefs
    end repeat
    if tPrefsChanged then
       setPrefsA sPrefsA
-      preOpenCard
    end if
+   displayPrefs
 end reinitializePrefs
 
 
@@ -114,6 +124,6 @@ on reinitializeStackPrefs
    put tPrefsA["CollisionPolicy"] into sPrefsA["CollisionPolicy"]
    
    set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
-   preOpenCard
+   displayPrefs
    restartAutoSync
 end reinitializeStackPrefs
