@@ -35,6 +35,9 @@ on mouseUp
       addToLog "Start time:" && tStartTime && "Finish time:" && the long time
       addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
       
+      -- Subscribe to edit script messages
+      ideSubscribe "ideEditScript"
+      
       -- Start watching:
       put sDataA["ExportPath"] into sFolderToWatch
       WatchFolder "UpdateScripts"
@@ -42,6 +45,7 @@ on mouseUp
       -- Stop watching:
       put empty into sFolderToWatch
       put empty into sLastDirContentsMD5
+      revIDEUnsubscribe "ideEditScript"
    end if
 end mouseUp
 
@@ -110,43 +114,10 @@ on UpdateScripts
 end UpdateScripts
 
 
-on ExternalEditScript pObject
-   local tEditor, tFileName, tObjectID, tResult, tStackName
-   
-   // verify that mainstack is being tracked
-   put the short name of (word -2 to -1 of pObject) into tStackName
-   if tStackName is not sDataA["mainstack"] then exit ExternalEditScript
-   
-   // check to see if object is actually in a substack
-   if word -5 of pObject is "stack" then
-      put char 2 to -2 of word -4 of pObject into tStackName
+on ideEditScript pObject
+   if the hilite of button "AutoExternalEditor" of card "ScriptTracker" \
+         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" then
+      editScriptFile pObject, sDataA
    end if
-   
-   // objects in a background/shared group are named differently
-   put word 1 to 3 of pObject into tObjectID
-   if word 1 of tObjectID is "group" and \
-         word 3 of tObjectID is among the lines of \
-         sDataA[tStackName]["sharedGroupIDs"] then
-      put "bkgnd" into word 1 of tObjectID
-   end if
-   
-   // generate file name
-   put sDataA["ExportPath"] & "stack_" & \
-         replaceText(tStackName, space, "_") & "_" into tFileName
-   if word 1 of pObject is not "stack" then
-      put replaceText(tObjectID, space, "_") after tFileName
-   end if
-   put ".livecodescript" after tFileName
-   
-   // try to open in external editor
-   put getPref("Editor") into tEditor
-   if tEditor is not empty then
-      launch tFileName with tEditor
-      put the result into tResult
-      if tResult is not empty and tResult is not tEditor then
-         addToLog "Error opening" && tFileName && "with" && tEditor & ":" && tResult
-      end if
-   end if
-   
    // not currently able to prevent SE from opening
-end ExternalEditScript
+end ideEditScript

@@ -119,13 +119,3 @@ on restartAutoSync
       return "running"
    end if
 end restartAutoSync
-
-
-on ideEditScript pObject
-   if the hilite of button "Automatic" of card "Tracker" of stack "ScriptTracker" and \
-         the hilite of button "AutoExternalEditor" of card "ScriptTracker" \
-         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" then
-      send "ExternalEditScript pObject" to button "Automatic" of card "Tracker" \
-            of stack "ScriptTracker"
-   end if
-end ideEditScript

@@ -18,7 +18,6 @@ on openCard
    put empty into field "log" of stack "ScriptTrackerLog"
    put empty into field "count"
    loadPrefs
-   ideSubscribe "ideEditScript"
    insert the script of button "SyncBeforeSave" of card "ScriptTracker" \
          of stack "ScriptTrackerPrefs" of stack "ScriptTracker" into front
 end openCard

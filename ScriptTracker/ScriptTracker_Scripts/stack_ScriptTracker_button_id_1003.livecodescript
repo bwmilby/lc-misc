@@ -67,8 +67,7 @@ Script "stack_ScriptTracker_button_id_1003"
 constant kPropertySetToDelete = "bwmSmartScriptOld"
 
 //>LOCALS
-local sDiffContext, sDigestType, sFileMethod, sPrefsA
-local sPropertySet
+local sDiffContext, sDigestType, sFileMethod, sPrefsA, sPropertySet
 
 
 command initializePrefs
@@ -190,6 +189,13 @@ command buildStackArray \
    if pStackName is not xDataA["mainStack"] then
       put " of stack" && _q(xDataA["mainStack"]) after tStackLongID
    end if
+   
+   // ensure group-editing mode is disabled
+   // cardIDs are not properly returned if enabled
+   try
+      set the editBackground of stack pStackName to false
+   end try
+   
    put tStackLongID into xDataA[pStackName]["longID"]
    put the backgroundIDs of tStackLongID into xDataA[pStackName]["backgroundIDs"]
    put the sharedGroupIDs of tStackLongID into xDataA[pStackName]["sharedGroupIDs"]
@@ -226,6 +232,12 @@ command exportStackScripts \
    // save the stack script
    put xDataA[pStackName]["longID"] into tStackLongID
    saveScriptFile pStackName, xDataA, tStackLongID, tStackLongID
+   
+   // ensure group-editing mode is disabled
+   // object long IDs are not properly returned if enabled
+   try
+      set the editBackground of stack pStackName to false
+   end try
    
    // Manually build all long IDs so that the short stack name is used
    // and to ensure that references do not change based on whether a
@@ -437,6 +449,73 @@ command loadScriptFile \
    
    saveScriptFile tStackName, xDataA, tObjectLongID, tObjectLongName
 end loadScriptFile
+
+
+command editScriptFile \
+      pObjectLongID, /* file name to load         */ \
+      @xDataA        /* export data array         */
+   local tBackgroundCheck, tEditor, tFullFilePath, tObjectLongName
+   local tResult, tStackName
+   
+   // verify that mainstack is being tracked
+   put the short name of (word -2 to -1 of pObjectLongID) into tStackName
+   if tStackName is not xDataA["mainstack"] then exit editScriptFile
+   
+   // check to see if object is actually in a substack
+   if word -5 of pObjectLongID is "stack" then
+      put char 2 to -2 of word -4 of pObjectLongID into tStackName
+      put -13 into tBackgroundCheck
+   else
+      put -10 into tBackgroundCheck
+   end if
+   
+   // ensure group-editing mode is disabled
+   // object long IDs are not properly returned if enabled
+   try
+      set the editBackground of stack tStackName to false
+   end try
+   
+   // shorten mainstack name
+   put the long id of pObjectLongID into pObjectLongID
+   put the long name of pObjectLongID into tObjectLongName
+   put _q(tStackName) into word -1 of pObjectLongID
+   put _q(tStackName) into word -1 of tObjectLongName
+   
+   // shared group check
+   if word tBackgroundCheck of pObjectLongID is "group" and \
+         word (tBackgroundCheck + 2) of pObjectLongID is among the lines of \
+         xDataA[tStackName]["sharedGroupIDs"] then
+      put "bkgnd" into word tBackgroundCheck of pObjectLongID
+      delete word (tBackgroundCheck + 3) to (tBackgroundCheck + 6) of pObjectLongID
+      delete char offset("card",tObjectLongName) to offset("stack",tObjectLongName) - 1 \
+            of tObjectLongName
+      if word tBackgroundCheck + 4 of tObjectLongName is "group" then
+         put "bkgnd" into word tBackgroundCheck + 4 of tObjectLongName
+      else
+         put "bkgnd" into word tBackgroundCheck + 5 of tObjectLongName
+      end if
+   end if
+   
+   // ensure the script contains something to generate a file
+   if the script of pObjectLongID is empty then
+      set the script of pObjectLongID to "# new script starts here..."
+   end if
+   
+   // ensure file contains the latest version of the script
+   saveScriptFile tStackName, xDataA, pObjectLongID, tObjectLongName
+   
+   // try to open in external editor
+   put getPref("Editor") into tEditor
+   if tEditor is not empty then
+      put xDataA["ExportPath"] & xDataA["fileName"] into tFullFilePath
+      launch tFullFilePath with tEditor
+      put the result into tResult
+      if tResult is not empty and tResult is not tEditor then
+         addToLog "Error opening" && xDataA["fileName"] && "with" && \
+               tEditor & ":" && tResult
+      end if
+   end if
+end editScriptFile
 
 
 private command _removeHeader \
