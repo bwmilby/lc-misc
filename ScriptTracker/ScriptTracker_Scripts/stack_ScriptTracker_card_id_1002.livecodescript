@@ -23,19 +23,6 @@ on openCard
 end openCard
 
 
-on resumeStack
-   local tStacks
-   
-   repeat for each line tStack in IDEUserMainstacks()
-      if the mode of stack tStack > 0 then
-         put tStack & lf after tStacks
-      end if
-   end repeat
-   delete char -1 of tStacks
-   set the text of button "StackMenu" to tStacks
-end resumeStack
-
-
 on saveStackRequest
    put empty into field "log" of stack "ScriptTrackerLog"
    put empty into field "count"

@@ -265,8 +265,8 @@ end exportStackScripts
 
 
 command saveDiffFile @xDataA
-   put xDataA["diff"] into URL (sFileMethod & xDataA["DiffPath"] \
-         & "diff_" & the seconds & ".txt")
+   put textEncode(xDataA["diff"], "UTF-8") into URL (sFileMethod & \
+         xDataA["DiffPath"] & "diff_" & the seconds & ".txt")
    delete variable xDataA["diff"]
 end saveDiffFile
 
@@ -357,7 +357,7 @@ command saveScriptFile \
    end if
    
    if not tFileMissing then
-      put URL ("file:" & tFullFilePath) into tFileScript
+      put textDecode(URL ("file:" & tFullFilePath), "UTF-8") into tFileScript
       if tFileNewer then
          put messageDigest(tFileScript, sDigestType) into tFileHash
          if tHash is tFileHash then put false into tFileNewer
@@ -409,7 +409,7 @@ command saveScriptFile \
       end try
    else if tFileMissing or tScriptChanged then
       put tHash into tProps[sDigestType]
-      put tScript into URL (sFileMethod & tFullFilePath)
+      put textEncode(tScript, "UTF-8") into URL (sFileMethod & tFullFilePath)
       addToLog xDataA["fileName"] && "exported"
    end if
    
@@ -425,7 +425,8 @@ command loadScriptFile \
    local tFileScript, tObjectLongID, tObjectLongName, tOffset
    local tStackName
    
-   put line 1 to 8 of URL ("file:" & pFileName) into tFileScript
+   put textDecode(line 1 to 8 of URL ("file:" & pFileName), "UTF-8") \
+         into tFileScript
    
    put offset("# Name:",tFileScript)+7 into tOffset
    delete char 1 to tOffset of tFileScript
