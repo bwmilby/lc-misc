@@ -7,10 +7,6 @@ Script "stack_ScriptTracker_button_id_1004"
 */
 
 
-//>CONSTANTS
-constant kScrollToBottom = "yes"
-
-
 on mouseUp
    local tDataA, tStackName, tStart, tStartMS, tStartTime
    
@@ -26,5 +22,5 @@ on mouseUp
    buildMainStackArray tStackName, tDataA
    exportMainStackScripts tStackName, tDataA
    addToLog "Start time:" && tStartTime && "Finish time:" && the long time
-   addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
+   addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms"
 end mouseUp

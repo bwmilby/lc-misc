@@ -173,6 +173,7 @@ command ensureDirectoryExists \
       catch tError
          answer "Error" && tError && "creating folder" && tFullPath
          return "error" for error
+         exit ensureDirectoryExists
       end try
    end if
    if char -1 of tFullPath is not "/" then put "/" after tFullPath
@@ -206,7 +207,7 @@ end buildStackArray
 command exportMainStackScripts \
       pStackName,   /* stack short name          */ \
       @xDataA       /* export data array         */
-   // same main stack
+   // save main stack
    exportStackScripts pStackName, xDataA
    
    // save substacks
@@ -220,7 +221,7 @@ command exportMainStackScripts \
    end if
    
    // remove any extra files for objects that no longer exist
-   removeExtraFiles xDataA
+   _removeExtraFiles xDataA
 end exportMainStackScripts
 
 
@@ -231,7 +232,7 @@ command exportStackScripts \
    
    // save the stack script
    put xDataA[pStackName]["longID"] into tStackLongID
-   saveScriptFile pStackName, xDataA, tStackLongID, tStackLongID
+   _saveScriptFile pStackName, xDataA, tStackLongID, tStackLongID
    
    // ensure group-editing mode is disabled
    // object long IDs are not properly returned if enabled
@@ -250,16 +251,16 @@ command exportStackScripts \
       put "bkgnd id" && tObjectID && "of" && tStackLongID into tObjectLongID
       put _longName(tObjectLongID, tStackLongID) into tObjectLongName
       put "bkgnd" into word 1 of tObjectLongName
-      saveScriptFile pStackName, xDataA, tObjectLongID, tObjectLongName
-      exportChildContolScripts pStackName, xDataA, tObjectLongID, tObjectLongName
+      _saveScriptFile pStackName, xDataA, tObjectLongID, tObjectLongName
+      _exportChildContolScripts pStackName, xDataA, tObjectLongID, tObjectLongName
    end repeat
    
    // save card scripts and objects
    repeat for each line tObjectID in xDataA[pStackName]["cardIDs"]
       put "card id" && tObjectID && "of" && tStackLongID into tObjectLongID
       put _longName(tObjectLongID, tStackLongID) into tObjectLongName
-      saveScriptFile pStackName, xDataA, tObjectLongID, tObjectLongName
-      exportChildContolScripts pStackName, xDataA, tObjectLongID, tObjectLongName
+      _saveScriptFile pStackName, xDataA, tObjectLongID, tObjectLongName
+      _exportChildContolScripts pStackName, xDataA, tObjectLongID, tObjectLongName
    end repeat
 end exportStackScripts
 
@@ -271,7 +272,7 @@ command saveDiffFile @xDataA
 end saveDiffFile
 
 
-command removeExtraFiles @xDataA
+private command _removeExtraFiles @xDataA
    local tFiles
    
    put files(xDataA["ExportPath"]) into tFiles
@@ -282,10 +283,10 @@ command removeExtraFiles @xDataA
                xDataA["ExtraPath"] & the seconds & "_" & tFile
       end if
    end repeat
-end removeExtraFiles
+end _removeExtraFiles
 
 
-command exportChildContolScripts \
+private command _exportChildContolScripts \
       pStackName,     /* stack short name            */ \
       @xDataA,        /* export data array           */ \
       pObjectLongID,  /* long ID of parent control   */ \
@@ -295,14 +296,14 @@ command exportChildContolScripts \
    
    if the dgProps["Control Type"] of pObjectLongID is "Data Grid" then
       // do not export the automatically generated dgGrid groups and controls
-      exit exportChildContolScripts
+      exit _exportChildContolScripts
    end if
    
    try
       put the childControlIDs of pObjectLongID into tChildControlIDs
-      if tChildControlIDs is empty then exit exportChildContolScripts
+      if tChildControlIDs is empty then exit _exportChildContolScripts
    catch tError
-      exit exportChildContolScripts
+      exit _exportChildContolScripts
    end try
    
    put xDataA[pStackName]["longID"] into tStackLongID
@@ -313,13 +314,13 @@ command exportChildContolScripts \
       put the abbreviated id of control id tControlID of tStackLongID && "of" \
             && pObjectLongID into tControlLongID
       put _longName(tControlLongID, pObjectLongName) into tControlLongName
-      saveScriptFile pStackName, xDataA, tControlLongID, tControlLongName
-      exportChildContolScripts pStackName, xDataA, tControlLongID, tControlLongName
+      _saveScriptFile pStackName, xDataA, tControlLongID, tControlLongName
+      _exportChildContolScripts pStackName, xDataA, tControlLongID, tControlLongName
    end repeat
-end exportChildContolScripts
+end _exportChildContolScripts
 
 
-command saveScriptFile \
+private command _saveScriptFile \
       pStackName,     /* stack short name          */ \
       @xDataA,        /* export data array         */ \
       pObjectLongID,  /* long ID of control        */ \
@@ -333,7 +334,7 @@ command saveScriptFile \
    end if
    
    put _buildFile(pStackName, xDataA, pObjectLongID, pObjectLongName) into tScript
-   if tScript is empty then exit saveScriptFile
+   if tScript is empty then exit _saveScriptFile
    addToCount
    
    // optional feature to delete custom property set from all objects
@@ -353,7 +354,7 @@ command saveScriptFile \
    
    if not (tFileMissing or tFileNewer or tScriptChanged) then
       // no changes
-      exit saveScriptFile
+      exit _saveScriptFile
    end if
    
    if not tFileMissing then
@@ -391,7 +392,7 @@ command saveScriptFile \
          case "Skip"
             addToLog xDataA["fileName"] && \
                   "skipped - changes in file and IDE"
-            exit saveScriptFile
+            exit _saveScriptFile
             break
       end switch
    end if
@@ -416,7 +417,7 @@ command saveScriptFile \
    put _getFileSeconds(xDataA) into tProps["fileSeconds"]
    set the customProperties[sPropertySet] of pObjectLongID to tProps
    put tProps["fileSeconds"] into xDataA["files"][xDataA["fileName"]]
-end saveScriptFile
+end _saveScriptFile
 
 
 command loadScriptFile \
@@ -448,7 +449,7 @@ command loadScriptFile \
       put char 2 to -2 of word -1 of tObjectLongID into tStackName
    end if
    
-   saveScriptFile tStackName, xDataA, tObjectLongID, tObjectLongName
+   _saveScriptFile tStackName, xDataA, tObjectLongID, tObjectLongName
 end loadScriptFile
 
 
@@ -479,8 +480,8 @@ command editScriptFile \
    // shorten mainstack name
    put the long id of pObjectLongID into pObjectLongID
    put the long name of pObjectLongID into tObjectLongName
-   put _q(tStackName) into word -1 of pObjectLongID
-   put _q(tStackName) into word -1 of tObjectLongName
+   put _q(xDataA["mainstack"]) into word -1 of pObjectLongID
+   put _q(xDataA["mainstack"]) into word -1 of tObjectLongName
    
    // shared group check
    if word tBackgroundCheck of pObjectLongID is "group" and \
@@ -488,8 +489,8 @@ command editScriptFile \
          xDataA[tStackName]["sharedGroupIDs"] then
       put "bkgnd" into word tBackgroundCheck of pObjectLongID
       delete word (tBackgroundCheck + 3) to (tBackgroundCheck + 6) of pObjectLongID
-      delete char offset("card",tObjectLongName) to offset("stack",tObjectLongName) - 1 \
-            of tObjectLongName
+      delete char offset("of card",tObjectLongName) to \
+            offset("of stack",tObjectLongName) - 1 of tObjectLongName
       if word tBackgroundCheck + 4 of tObjectLongName is "group" then
          put "bkgnd" into word tBackgroundCheck + 4 of tObjectLongName
       else
@@ -503,7 +504,7 @@ command editScriptFile \
    end if
    
    // ensure file contains the latest version of the script
-   saveScriptFile tStackName, xDataA, pObjectLongID, tObjectLongName
+   _saveScriptFile tStackName, xDataA, pObjectLongID, tObjectLongName
    
    // try to open in external editor
    put getPref("Editor") into tEditor

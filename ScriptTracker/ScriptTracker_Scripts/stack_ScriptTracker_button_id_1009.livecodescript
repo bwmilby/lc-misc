@@ -7,11 +7,8 @@ Script "stack_ScriptTracker_button_id_1009"
 */
 
 
-//>CONSTANTS
-constant kScrollToBottom = "yes"
-
 //>LOCALS
-local sDataA, sFiles, sFolderToWatch, sLastDirContentsMD5
+local sDataA, sFiles, sFolderToWatch, sLastDirContentsMD5, sMessage
 
 
 on mouseUp
@@ -33,7 +30,7 @@ on mouseUp
       buildMainStackArray tStackName, sDataA
       exportMainStackScripts tStackName, sDataA
       addToLog "Start time:" && tStartTime && "Finish time:" && the long time
-      addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
+      addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms"
       
       -- Subscribe to edit script messages
       ideSubscribe "ideEditScript"
@@ -51,8 +48,14 @@ end mouseUp
 
 
 on WatchFolder pCallbackHandlerName
-   local tDirContentsMD5
+   local tDirContentsMD5, tMessages
    
+   -- Make sure there are not additional messages queued
+   if sMessage is not empty then
+      cancel sMessage
+      put empty into sMessage
+   end if
+
    if sFolderToWatch is empty then
       set the hilite of me to false
       exit WatchFolder
@@ -76,6 +79,7 @@ on WatchFolder pCallbackHandlerName
    else
       put tDirContentsMD5 into sLastDirContentsMD5
       send "WatchFolder "&pCallbackHandlerName to me in 500 millisecs
+      put the result into sMessage
    end if
 end WatchFolder
 
@@ -84,6 +88,12 @@ on UpdateScripts
    local tFile, tStackName, tStart, tStartMS, tStartTime, tTime
    
    clearLog
+   
+   -- Make sure there are not additional messages queued
+   if sMessage is not empty then
+      cancel sMessage
+      put empty into sMessage
+   end if
    
    put empty into sLastDirContentsMD5
    put the milliseconds into tStartMS
@@ -107,10 +117,11 @@ on UpdateScripts
       restoreLog
    else
       addToLog "Start time:" && tStartTime && "Finish time:" && the long time
-      addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms", kScrollToBottom
+      addToLog "Elapsed time:" && (the milliseconds - tStartMS) && "ms"
    end if
    
    send "WatchFolder" && _q("UpdateScripts") to me in 1000 millisecs
+   put the result into sMessage
 end UpdateScripts
 
 

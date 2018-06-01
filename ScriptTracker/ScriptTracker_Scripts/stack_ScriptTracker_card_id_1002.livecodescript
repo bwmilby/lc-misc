@@ -6,11 +6,8 @@ Script "stack_ScriptTracker_card_id_1002"
 */
 
 
-//>CONSTANTS
-constant kScrollToBottom = "yes"
-
 //>LOCALS
-local sCount, sLogBackup
+local sCount, sLog, sLogBackup, sLogMessage
 
 
 on openCard
@@ -47,35 +44,37 @@ end closeStackRequest
 // Logging handlers
 
 
-command addToLog pText, pScrollToBottom
-   put pText & lf after field "log" of stack "ScriptTrackerLog"
-   if pScrollToBottom is not empty then
-      set the vscroll of field "log" of stack "ScriptTrackerLog" to \
-            the formattedHeight of field "log" of stack "ScriptTrackerLog"
+command addToLog pText
+   put pText & lf before sLog
+   if sLogMessage is empty then
+      send "displayLog" to me in 500 milliseconds
+      put the result into sLogMessage
    end if
 end addToLog
 
 
-command addCharToLog pChar
-   if pChar is empty then
-      put "*" after field "log" of stack "ScriptTrackerLog"
-   else
-      put pChar after field "log" of stack "ScriptTrackerLog"
+command displayLog
+   if sLogMessage is not empty then
+      cancel sLogMessage
+      put empty into sLogMessage
    end if
-end addCharToLog
+   set the text of field "log" of stack "ScriptTrackerLog" to sLog
+end displayLog
 
 
 command clearLog
    put 0 into sCount
-   put the text of field "log" of stack "ScriptTrackerLog" into sLogBackup
-   put empty into field "log" of stack "ScriptTrackerLog"
+   put sLog into sLogBackup
+   put empty into sLog
+   displayLog
 end clearLog
 
 
 command restoreLog
-   if the text of field "log" of stack "ScriptTrackerLog" is empty then
-      set the text of field "log" of stack "ScriptTrackerLog" to sLogBackup
+   if sLog is empty then
+      put sLogBackup into sLog
    end if
+   displayLog
 end restoreLog
 
 
@@ -97,6 +96,6 @@ end clearCount
 command updateRunningScriptLater \
       pObjectLongID, /* long ID of object  */ \
       pScript        /* replacement script */
-   addToLog "Trying to set script of" && pObjectLongID, kScrollToBottom
+   addToLog "Trying to set script of" && pObjectLongID
    set the script of pObjectLongID to pScript
 end updateRunningScriptLater
