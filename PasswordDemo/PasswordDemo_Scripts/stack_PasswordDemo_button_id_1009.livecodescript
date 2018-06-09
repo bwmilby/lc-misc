@@ -10,7 +10,6 @@ on mouseUp
    local tAccountInfo, tHash, tPassword, tSalt, tUserName
    
    put field "UserName" into tUserName
-   put field "Password" into tPassword
    
    // check to see if the account already exists
    filter the text of field "Accounts" with (tUserName & tab & "*") into tAccountInfo
@@ -21,13 +20,14 @@ on mouseUp
    
    // generate a random salt value for each password
    // this is stored with the hash in the database
-   put randombytes(8) into tSalt
+   put generateSalt() into tSalt
    
    // generate the password hash using the salt
-   put md5digest( tSalt & md5digest( tSalt & tPassword )) into tHash
+   put field "Password" into tPassword
+   put hmac.b64(tPassword, tSalt, "sha3-256") into tHash
    
    // store the new user with the salt and hash in the database
-   put tUserName & tab & base64encode(tSalt) & tab & base64encode(tHash) & lf \
+   put tUserName & tab & base64encode(tSalt) & tab & tHash & lf \
          after field "Accounts"
    
    put "User" && tUserName && "added" into field "Status"

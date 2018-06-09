@@ -7,27 +7,19 @@ Script "stack_PasswordDemo_button_id_1017"
 
 
 on mouseUp
-   local tAccountInfo, tCheckHash, tCorrectHash, tPassword, tSalt
-   local tUserName
+   local tCheckHash, tCorrectHash, tPassword, tSalt, tUserName
    
    put field "UserName" into tUserName
-   put field "Password" into tPassword
    
-   // make sure the account exists
-   // in production, probably would not report this separately
-   filter the text of field "Accounts" with (tUserName & tab & "*") into tAccountInfo
-   if tAccountInfo is empty then
+   if not getAccount(tUserName, tSalt, tCorrectHash) then
+      // in production, probably would just report "Incorrect login"
       put "Account does not exist" into field "Status"
       exit mouseUp
    end if
    
-   // pull the correct hash and salt from the database
-   set the itemdel to tab
-   put base64decode(item 2 of tAccountInfo) into tSalt
-   put base64decode(item 3 of tAccountInfo) into tCorrectHash
-   
    // generate the hash from the provided password
-   put md5digest( tSalt & md5digest( tSalt & tPassword )) into tCheckHash
+   put field "Password" into tPassword
+   put hmac.b64(tPassword, tSalt, "sha3-256") into tCheckHash
    
    // check that they match
    if tCorrectHash is tCheckHash then
