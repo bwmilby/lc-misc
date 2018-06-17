@@ -27,9 +27,9 @@ Script "stack_ScriptTracker_button_id_1003"
 * Preferences that are used in this script
 *   CollisionPolicy     choose which version of the script is retained when a
 *                       change is noticed in both the file and stack
-*                       options:  Script, File, Skip, Ask
+*                       options:  Stack, File, Skip, Ask
 *                          (Skip makes no changes to the file but the diff is
-*                          included; Script or File will keep that version and
+*                          included; Stack or File will keep that version and
 *                          update the file to match)
 *   DiffPath            relative path for diff files, merged
 *   ExportPath          relative path for export files, merged
@@ -377,13 +377,14 @@ private command _saveScriptFile \
       // changes in both file and IDE
       put xDataA["CollisionPolicy"] into tCollisionPolicy
       if tCollisionPolicy is "Ask" then
-         answer warning "Changes were found in both the script and" \
+         answer warning "Changes were found in both the stack script and" \
                && xDataA["fileName"] & "." & lf & \
-               "Which version should be kept?" with "Script" or "File" or "Skip"
+               "Which version should be kept?" with "Stack" or "File" or "Skip"
          put it into tCollisionPolicy
       end if
       switch tCollisionPolicy
          case "Script"
+         case "Stack"
             put false into tFileNewer
             break
          case "File"

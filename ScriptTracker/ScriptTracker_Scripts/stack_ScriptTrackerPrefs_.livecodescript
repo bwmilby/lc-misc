@@ -28,7 +28,12 @@ end checkPref
 on preOpenCard
    if the short name of this card is "Stack" then
       put field "StackName" of stack "ScriptTracker" into sStackName
-      put the customProperties[getPref(PropertySet)] of stack sStackName into sPrefsA
+      if there is not a stack sStackName then
+         go card "Defaults"
+         exit preOpenCard
+      end if
+      put the customProperties[getPref(PropertySet)] of stack sStackName \
+            into sPrefsA
       if sPrefsA is empty then
          reinitializeStackPrefs
          exit preOpenCard
@@ -62,18 +67,28 @@ on saveUpdatedPrefs
    local tPrefsChanged
    
    repeat for each item tPref in the uCheckBoxes of this card
-      checkPref tPref, the hilite of button tPref of this card, sPrefsA, tPrefsChanged
+      checkPref tPref, the hilite of button tPref of this card, \
+            sPrefsA, tPrefsChanged
    end repeat
    repeat for each item tPref in the uTextFields of this card
-      checkPref tPref, the text of field tPref of this card, sPrefsA, tPrefsChanged
+      checkPref tPref, the text of field tPref of this card, \
+            sPrefsA, tPrefsChanged
    end repeat
    repeat for each item tPref in the uOptionMenus of this card
-      checkPref tPref, the label of button tPref of this card, sPrefsA, tPrefsChanged
+      checkPref tPref, the label of button tPref of this card, \
+            sPrefsA, tPrefsChanged
    end repeat
    if tPrefsChanged then
       if the short name of this card is "Stack" then
-         set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
-         restartAutoSync
+         if there is a stack sStackName then
+            set the customProperties[getPref(PropertySet)] of \
+                  stack sStackName to sPrefsA
+            restartAutoSync
+         else
+            beep
+            answer "Error: Stack" && quote & sStackName & quote && \
+                  "is not open. Unable to edit preferences."
+         end if
       else
          setPrefsA sPrefsA
       end if
@@ -123,7 +138,8 @@ on reinitializeStackPrefs
    put merge(tPrefsA["ExtraPath"]) into sPrefsA["ExtraPath"]
    put tPrefsA["CollisionPolicy"] into sPrefsA["CollisionPolicy"]
    
-   set the customProperties[getPref(PropertySet)] of stack sStackName to sPrefsA
+   set the customProperties[getPref(PropertySet)] of stack sStackName \
+         to sPrefsA
    displayPrefs
    restartAutoSync
 end reinitializeStackPrefs
