@@ -10,13 +10,13 @@ on mouseUp
    local tDestPath, tDocumentationPath, tSourcePath, tTemplate, tFileRelativePath
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
    local tIDEGuidesFolder, tRepoGuidesFolder
-
+   
    set the itemdel to "/"
    put item 1 to -2 of the filename of this stack into tDestPath
-
+   
    put revIDESpecialFolderPath("documentation") into tDocumentationPath
    revCopyFolder tDocumentationPath & slash & "guides", tDestPath
-
+   
    put tDocumentationPath & slash & "html_viewer" into tSourcePath
    revCopyFolder tSourcePath & slash & "css", tDestPath
    revCopyFolder tSourcePath & slash & "fonts", tDestPath
@@ -24,7 +24,7 @@ on mouseUp
    create folder tDestPath & slash & "resources"
    revCopyFolder tSourcePath & slash & "resources" & slash & "media", \
          tDestPath & slash & "resources"
-
+   
    set the itemdel to comma
    repeat for each item tProduct in "commercial,community,communityplus,professional"
       put "/resources/" & tProduct & "/ideSkin/bubble.png" into tFileRelativePath
@@ -33,26 +33,28 @@ on mouseUp
       revCopyFile tDocumentationPath & "/../Toolset" & tFileRelativePath, \
             tDestPath & tFileRelativePath
    end repeat
-
+   
    put "." & slash & "css" into tDocsCSSFolder
    put "." & slash & "js" into tDocsJSFolder
    put "." & slash & "guides" into tIDEGuidesFolder
    put revIDESpecialFolderPath("repo guides") into tRepoGuidesFolder
-
+   
    # create API HTML file
    put url ("binfile:" & tSourcePath & slash & "api.html.template") into tTemplate
    put "." & slash & "built_api.js" into tDataPath
    put merge(tTemplate) into tTemplate
    put tTemplate into url ("binfile:" & tDestPath & slash & "api.html")
-
+   
    # create Guide HTML file
    put url ("binfile:" & tSourcePath & slash & "guide.html.template") into tTemplate
    put "." & slash & "built_guide.js" into tDataPath
    put merge(tTemplate) into tTemplate
    put tTemplate into url ("binfile:" & tDestPath & slash & "guide.html")
-
+   
    # update paths in lcdoc.css file
    put url ("binfile:" & tDestPath & "/css/lcdoc.css") into tTemplate
    replace "../../../Toolset/" with "../" in tTemplate
+   replace "#lcdoc_list {" & lf & "}" with "#lcdoc_list {" & lf & \
+         tab & "cursor: pointer;" & lf & "}" in tTemplate
    put tTemplate into url ("binfile:" & tDestPath & "/css/lcdoc.css")
 end mouseUp
