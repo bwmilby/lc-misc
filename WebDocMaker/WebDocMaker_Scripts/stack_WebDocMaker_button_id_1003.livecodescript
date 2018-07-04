@@ -14,6 +14,9 @@ on mouseUp
    
    put revIDESpecialFolderPath("documentation cache") into tSourcePath
    
+   revDeleteFile tDestPath & slash & "built_api.js"
+   revDeleteFile tDestPath & slash & "built_guide.js"
+   
    revCopyFile tSourcePath & slash & "built_api.js", tDestPath
    revCopyFile tSourcePath & slash & "built_guide.js", tDestPath
 end mouseUp

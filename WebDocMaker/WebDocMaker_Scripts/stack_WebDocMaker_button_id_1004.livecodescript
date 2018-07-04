@@ -11,8 +11,14 @@ on mouseUp
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
    local tIDEGuidesFolder, tRepoGuidesFolder
    
-   set the itemdel to "/"
+   set the itemdel to slash
    put item 1 to -2 of the filename of this stack into tDestPath
+   set the itemdel to comma
+   
+   # delete previously copied data
+   repeat for each item tFolder in "guides,css,fonts,js,resources"
+      revDeleteFolder tDestPath & slash & tFolder
+   end repeat
    
    put revIDESpecialFolderPath("documentation") into tDocumentationPath
    revCopyFolder tDocumentationPath & slash & "guides", tDestPath
@@ -25,11 +31,10 @@ on mouseUp
    revCopyFolder tSourcePath & slash & "resources" & slash & "media", \
          tDestPath & slash & "resources"
    
-   set the itemdel to comma
    repeat for each item tProduct in "commercial,community,communityplus,professional"
-      put "/resources/" & tProduct & "/ideSkin/bubble.png" into tFileRelativePath
       create folder tDestPath & slash & "resources" & slash & tProduct
       create folder tDestPath & slash & "resources" & slash & tProduct & slash & "ideSkin"
+      put "/resources/" & tProduct & "/ideSkin/bubble.png" into tFileRelativePath
       revCopyFile tDocumentationPath & "/../Toolset" & tFileRelativePath, \
             tDestPath & tFileRelativePath
    end repeat
@@ -51,9 +56,15 @@ on mouseUp
    put merge(tTemplate) into tTemplate
    put tTemplate into url ("binfile:" & tDestPath & slash & "guide.html")
    
+   try
+      # ensure that the files are writable on OS X
+      get shell ("chmod -R u+w" && quote & tDestPath & quote)
+   end try
+   
    # update paths in lcdoc.css file
    put url ("binfile:" & tDestPath & "/css/lcdoc.css") into tTemplate
    replace "../../../Toolset/" with "../" in tTemplate
+   # fix to allow clicks/touches to work on iOS to select entries
    replace "#lcdoc_list {" & lf & "}" with "#lcdoc_list {" & lf & \
          tab & "cursor: pointer;" & lf & "}" in tTemplate
    put tTemplate into url ("binfile:" & tDestPath & "/css/lcdoc.css")
