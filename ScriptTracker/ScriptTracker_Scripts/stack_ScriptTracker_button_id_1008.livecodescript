@@ -28,3 +28,13 @@ on mouseDown pButtonNumber
    delete char -1 of tStacks
    set the text of button "StackMenu" to tStacks
 end mouseDown
+
+
+on mouseEnter
+   set the hilite of me to true
+end mouseEnter
+
+
+on mouseLeave
+   set the hilite of me to false
+end mouseLeave
