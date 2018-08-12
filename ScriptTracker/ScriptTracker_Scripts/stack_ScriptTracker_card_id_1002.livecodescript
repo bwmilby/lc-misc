@@ -11,6 +11,7 @@ local sCount, sLog, sLogBackup, sLogMessage
 
 
 on openCard
+   set the showBorder of button "StackMenu" of me to (the platform is not "Linux")
    set the hilite of button "Automatic" of me to false
    put empty into field "log" of stack "ScriptTrackerLog"
    put empty into field "count"

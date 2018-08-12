@@ -119,3 +119,8 @@ on restartAutoSync
       return "running"
    end if
 end restartAutoSync
+
+
+on mouseDoubleUp pButtonNumber
+   go next card
+end mouseDoubleUp
