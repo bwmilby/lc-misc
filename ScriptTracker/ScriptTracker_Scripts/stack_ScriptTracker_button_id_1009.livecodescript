@@ -34,6 +34,8 @@ on mouseUp
       
       -- Subscribe to edit script messages
       ideSubscribe "ideEditScript"
+      insert the script of button "AutoExternalEditor" of card "ScriptTracker" \
+            of stack "ScriptTrackerPrefs" of stack "ScriptTracker" into front
       
       -- Start watching:
       put sDataA["ExportPath"] into sFolderToWatch
@@ -43,6 +45,8 @@ on mouseUp
       put empty into sFolderToWatch
       put empty into sLastDirContentsMD5
       revIDEUnsubscribe "ideEditScript"
+      remove the script of button "AutoExternalEditor" of card "ScriptTracker" \
+            of stack "ScriptTrackerPrefs" of stack "ScriptTracker" from front
    end if
 end mouseUp
 
@@ -125,10 +129,19 @@ on UpdateScripts
 end UpdateScripts
 
 
+constant kEditScriptButton = "button id 1037 of card id 1034"
 on ideEditScript pObject
+   local tContext, tOpenExternalEditor
+   put the executionContexts into tContext
+   -- attempt to avoid externally editing a script if it is being opened
+   -- for the debugger, if in browse mode then request should come from
+   -- the "AutoExternalEditor" button script that is placed in front
+   put (word 1 of the tool is "pointer") or \
+         (kEditScriptButton is in tContext) into tOpenExternalEditor
    if the hilite of button "AutoExternalEditor" of card "ScriptTracker" \
-         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" then
+         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" \
+         and tOpenExternalEditor then
       editScriptFile pObject, sDataA
+      return the result
    end if
-   // not currently able to prevent SE from opening
 end ideEditScript

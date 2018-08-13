@@ -401,14 +401,14 @@ private command _saveScriptFile \
    if tFileNewer then
       put tFileHash into tProps[sDigestType]
       _removeHeader tFileScript
-      addToLog xDataA["fileName"] && "changed outside of IDE"
       try
          set the script of pObjectLongID to tFileScript
       catch tError
-         addToLog "Unable to import script... retrying in 500ms"
+         addToLog "   Unable to import script... retrying in 500ms"
          send "updateRunningScriptLater pObjectLongID, tFileScript" \
                to this card in 500 milliseconds
       end try
+      addToLog xDataA["fileName"] && "changed outside of IDE"
    else if tFileMissing or tScriptChanged then
       put tHash into tProps[sDigestType]
       put textEncode(tScript, "UTF-8") into URL (sFileMethod & tFullFilePath)
@@ -442,6 +442,7 @@ command loadScriptFile \
             & tObjectLongID && "does not exist."
       exit loadScriptFile
    end if
+   if sDigestType is empty then initializePrefs
    
    // pull tStackName from long ID
    if word -5 of tObjectLongID is "stack" then
@@ -462,7 +463,9 @@ command editScriptFile \
    
    // verify that mainstack is being tracked
    put the short name of (word -2 to -1 of pObjectLongID) into tStackName
-   if tStackName is not xDataA["mainstack"] then exit editScriptFile
+   if tStackName is not xDataA["mainstack"] then
+      return "pass"
+   end if
    
    // check to see if object is actually in a substack
    if word -5 of pObjectLongID is "stack" then
@@ -516,6 +519,7 @@ command editScriptFile \
       if tResult is not empty and tResult is not tEditor then
          addToLog "Error opening" && xDataA["fileName"] && "with" && \
                tEditor & ":" && tResult
+         return "pass"
       end if
    end if
 end editScriptFile

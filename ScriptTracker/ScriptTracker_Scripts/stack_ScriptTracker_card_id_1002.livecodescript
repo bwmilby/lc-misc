@@ -38,6 +38,8 @@ on closeStackRequest
    revIDEUnsubscribe "ideEditScript"
    remove the script of button "SyncBeforeSave" of card "ScriptTracker" \
          of stack "ScriptTrackerPrefs" of stack "ScriptTracker" from front
+   remove the script of button "AutoExternalEditor" of card "ScriptTracker" \
+         of stack "ScriptTrackerPrefs" of stack "ScriptTracker" from front
    pass closeStackRequest
 end closeStackRequest
 
@@ -97,6 +99,10 @@ end clearCount
 command updateRunningScriptLater \
       pObjectLongID, /* long ID of object  */ \
       pScript        /* replacement script */
-   addToLog "Trying to set script of" && pObjectLongID
-   set the script of pObjectLongID to pScript
+   try
+      set the script of pObjectLongID to pScript
+      addToLog "Successfully set the script of" && pObjectLongID
+   catch tError
+      addToLog "Unable to set script of" && pObjectLongID
+   end try
 end updateRunningScriptLater

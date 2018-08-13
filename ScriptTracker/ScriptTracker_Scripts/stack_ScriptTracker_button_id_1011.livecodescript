@@ -15,4 +15,5 @@ on mouseUp
    if the mode of stack "ScriptTrackerPrefs" is 4 then
       toplevel stack "ScriptTrackerPrefs"
    end if
+   go card "Tracker"
 end mouseUp
