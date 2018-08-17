@@ -121,6 +121,17 @@ on restartAutoSync
 end restartAutoSync
 
 
+on stopAutoSync
+   if the hilite of button "Automatic" of card "Tracker" \
+         of stack "ScriptTracker" is true then
+      set the hilite of button "Automatic" of card "Tracker" \
+            of stack "ScriptTracker" to false
+      send "mouseUp" to button "Automatic" of card "Tracker" \
+            of stack "ScriptTracker"
+   end if
+end stopAutoSync
+
+
 on mouseDoubleUp pButtonNumber
    go next card
 end mouseDoubleUp

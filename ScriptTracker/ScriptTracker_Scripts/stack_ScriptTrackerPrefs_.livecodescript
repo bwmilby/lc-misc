@@ -32,7 +32,7 @@ on preOpenCard
          go card "Defaults"
          exit preOpenCard
       end if
-      put the customProperties[getPref(PropertySet)] of stack sStackName \
+      put the customProperties[getPref("PropertySet")] of stack sStackName \
             into sPrefsA
       if sPrefsA is empty then
          reinitializeStackPrefs
@@ -81,7 +81,7 @@ on saveUpdatedPrefs
    if tPrefsChanged then
       if the short name of this card is "Stack" then
          if there is a stack sStackName then
-            set the customProperties[getPref(PropertySet)] of \
+            set the customProperties[getPref("PropertySet")] of \
                   stack sStackName to sPrefsA
             restartAutoSync
          else
@@ -138,7 +138,7 @@ on reinitializeStackPrefs
    put merge(tPrefsA["ExtraPath"]) into sPrefsA["ExtraPath"]
    put tPrefsA["CollisionPolicy"] into sPrefsA["CollisionPolicy"]
    
-   set the customProperties[getPref(PropertySet)] of stack sStackName \
+   set the customProperties[getPref("PropertySet")] of stack sStackName \
          to sPrefsA
    displayPrefs
    restartAutoSync
