@@ -108,6 +108,7 @@ command buildMainStackArray \
    if item 1 to -2 of tStackFileName is not empty then
       delete item -1 of tStackFileName
    end if
+   put tStackFileName into xDataA["stackFileName"]
    
    // if pPath provided, use it as the base path
    if pPath is not empty then
@@ -123,6 +124,7 @@ command buildMainStackArray \
          xDataA["ExportPath"], tProps["ExportPath"]
    if the result is "error" then exit buildMainStackArray
    put tProps["ExportPath"] into tExportPath
+   put tExportPath into xDataA["ExportFolder"]
    
    // set path for diff exports
    ensureDirectoryExists tBasePath, merge(sPrefsA["DiffPath"]), \
@@ -207,6 +209,10 @@ end buildStackArray
 command exportMainStackScripts \
       pStackName,   /* stack short name          */ \
       @xDataA       /* export data array         */
+   // clear script index file
+   put "# " & xDataA["mainStack"] & lf into url (sFileMethod & \
+         xDataA["ExportPath"] & "../" & xDataA["stackFileName"] & ".md")
+
    // save main stack
    exportStackScripts pStackName, xDataA
    
@@ -545,7 +551,7 @@ private function _buildFile \
       @xDataA,        /* export data array         */ \
       pObjectLongID,  /* long ID of control        */ \
       pObjectLongName /* long name of control      */
-   local tBehavior, tFileName, tHeader, tScript
+   local tBehavior, tFileName, tHeader, tIndex, tScript
    
    if pObjectLongID is empty then return empty
    
@@ -578,6 +584,16 @@ private function _buildFile \
    put tBehavior after tHeader
    put _groupComment(pStackName, xDataA, pObjectLongID) after tHeader
    put "*/" & lf after tHeader
+   
+   // build script index entry from header
+   put line 4 to -2 of tHeader into tIndex
+   put "**" after line 1 of tIndex
+   replace "# Name: " with "**" in tIndex
+   replace lf & "#" with lf & "*" in tIndex
+   put lf & "* [" & tFileName & "](./" & xDataA["ExportFolder"] & \
+         "/" & xDataA["fileName"] & ")" & lf & lf after tIndex
+   put tIndex after url (sFileMethod & xDataA["ExportPath"] & "../" & \
+         xDataA["stackFileName"] & ".md")
    
    return tHeader & lf & lf & tScript
 end _buildFile

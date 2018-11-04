@@ -65,3 +65,7 @@ that was touched. Some error messages will get displayed there.
 ## Forum Announcement
 
 https://forums.livecode.com/viewtopic.php?f=77&t=31079
+
+## Script Index
+
+[ScriptTracker.md](./ScriptTracker.md)
