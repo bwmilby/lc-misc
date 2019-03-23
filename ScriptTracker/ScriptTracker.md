@@ -33,6 +33,11 @@
 * ID: button id 1014 of card id 1002 of stack "ScriptTracker"
 * [stack_ScriptTracker_button_id_1014](./ScriptTracker_Scripts/stack_ScriptTracker_button_id_1014.livecodescript)
 
+**widget "Help" of card "Tracker" of stack "ScriptTracker"**
+* ID: widget id 1018 of card id 1002 of stack "ScriptTracker"
+* Widget Kind: com.livecode.widget.svgpath
+* [stack_ScriptTracker_widget_id_1018](./ScriptTracker_Scripts/stack_ScriptTracker_widget_id_1018.livecodescript)
+
 **button "ScriptTrackerBehavior" of card "Behaviors" of stack "ScriptTracker"**
 * ID: button id 1003 of card id 1016 of stack "ScriptTracker"
 * [stack_ScriptTracker_button_id_1003](./ScriptTracker_Scripts/stack_ScriptTracker_button_id_1003.livecodescript)

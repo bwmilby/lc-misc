@@ -59,6 +59,14 @@ preferences are saved in the same location as the LiveCode prefs (but in
 a separate file). Stack level preferences are stored in each mainstack 
 as a custom property set.
 
+* **Script Tracker**:  Options to sync on save and to use external editor.
+* **Options**:  Export method (binfile/file), digest type (MD5/SHA-1), diff
+context lines, custom property set name
+* **Defaults**:  Initial settings when tracking a stack for the first time.
+Paths are relative to the mainstack file.
+* **Stack**:  Settings for the stack currently being tracked.  If the locations
+are changed, new locations will be used on the next sync operation.
+
 The Log will provide the time taken for an export and list each file 
 that was touched. Some error messages will get displayed there.
 
