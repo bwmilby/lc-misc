@@ -1,0 +1,74 @@
+Library: us.milby.library.icondrawing
+
+Type: library
+
+Summary: Allows SVG Icons to be compiled into the drawing format 
+
+Description:
+This library adds a utility handler that allows simple conversion of
+SVG Icon paths into the drawing format.
+
+version: 1.0.0
+
+author: Milby Computer
+
+
+Name: drawingSvgCompilePath
+
+Type: handler
+
+Syntax: drawingSvgCompilePath(<pPathString>)
+
+Summary: Retuns a compiled drawing for a SVG path
+
+Parameters: 
+
+pPathString: The SVG Path string to process
+
+Description:
+Parses the SVG path string and computes the tight bounding box, translates origin
+to eliminate excess margins, and returns drawing data ready to be assigned to an image.
+
+
+
+Name: drawingSvgCompileIcon
+
+Type: handler
+
+Syntax: drawingSvgCompileIcon(<pIconName>)
+
+Summary: Retuns a compiled drawing for a predefined SVG icon path name.
+
+Parameters: 
+
+pIconName: The name of the icon to process.
+
+Example: set the text of image 1 to drawingSvgCompileIcon("thumbs up")
+
+Description:
+Use the <drawingSvgCompileIcon> handler to generate a drawing for one of the
+predefined graphics provided by the "IconSVG" library.
+
+You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.
+
+
+
+Name: generateXmlForSvgPath
+
+Type: handler
+
+Syntax: generateXmlForSvgPath(<pPathString>)
+
+Summary: Returns an XML document for a SVG path.
+
+Parameters: 
+
+pPathString: The SVG Path string to process
+
+Description:
+Parses the SVG path string and computes the tight bounding box, translates origin
+to eliminate excess margins, and returns the XML necessary to compute a drawing.
+
+
+

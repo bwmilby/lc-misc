@@ -1,0 +1,96 @@
+/*
+Copyright (C) 2020 Milby Computer
+
+MIT License
+*/
+
+/**
+Allows SVG Icons to be compiled into the drawing format 
+
+Description:
+This library adds a utility handler that allows simple conversion of
+SVG Icon paths into the drawing format.
+*/
+library us.milby.library.icondrawing
+
+metadata version is "1.0.0"
+metadata author is "Milby Computer"
+metadata title is "SVG Icon Drawing Library"
+
+-- We need syntax from both canvas and engine built-in modules.
+use com.livecode.canvas
+use com.livecode.engine
+use com.livecode.library.iconsvg
+
+/**
+Summary: Returns an XML document for a SVG path.
+
+Parameters:
+pPathString: The SVG Path string to process
+
+Description:
+Parses the SVG path string and computes the tight bounding box, translates origin
+to eliminate excess margins, and returns the XML necessary to compute a drawing.
+*/
+public handler generateXmlForSvgPath(in pPathString as String) returns String
+   variable tPath as Path
+   put path pPathString into tPath
+   
+   variable tBBox as Rectangle
+   put the bounding box of tPath into tBBox
+   
+   translate tPath by [-(the left of tBBox), -(the top of tBBox)]
+   
+   variable tW as String
+   variable tH as String
+   put (the right of tBBox - the left of tBBox) formatted as string into tW
+   put (the bottom of tBBox - the top of tBBox) formatted as string into tH
+
+   return "<?xml version=\q1.0\q encoding=\qUTF-8\q?>\n" & \
+        "<svg\n" & \
+        "   xmlns:svg=\qhttp://www.w3.org/2000/svg\q\n" & \
+        "   xmlns=\qhttp://www.w3.org/2000/svg\q\n" & \
+        "   version=\q1.0\q\n" & \
+        "   width=\q" & tW & "\q  height=\q" & tH & "\q\n" & \
+        ">\n" & \
+        "<path d=\q" & the instructions of tPath & "\q />\n" & \
+        "</svg>"
+end handler
+
+/**
+Summary: Retuns a compiled drawing for a SVG path
+
+Parameters:
+pPathString: The SVG Path string to process
+
+Description:
+Parses the SVG path string and computes the tight bounding box, translates origin
+to eliminate excess margins, and returns drawing data ready to be assigned to an image.
+*/
+public handler drawingSvgCompilePath(in pPathString as String) returns any
+   variable tXml as String
+   put generateXmlForSvgPath(pPathString) into tXml
+   execute script "return drawingSvgCompile(param(1))" with [tXml]
+   return the result
+end handler
+
+/**
+Summary: Retuns a compiled drawing for a predefined SVG icon path name.
+
+Parameters:
+pIconName: The name of the icon to process.
+
+Example: set the text of image 1 to drawingSvgCompileIcon("thumbs up")
+
+Description:
+Use the <drawingSvgCompileIcon> handler to generate a drawing for one of the
+predefined graphics provided by the "IconSVG" library.
+
+You can get a list of available predefined path names by running
+`put iconNames()` in the Message Box.
+*/
+public handler drawingSvgCompileIcon(in pIconName as String) returns any
+   return drawingSvgCompilePath(iconSVGPathFromName(pIconName))
+end handler
+
+end library
