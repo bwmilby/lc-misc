@@ -1,5 +1,5 @@
 /*
-Copyright (C) 2020 Milby Computer
+Copyright (C) 2020-3 Milby Computer
 
 MIT License
 */
@@ -13,7 +13,7 @@ SVG Icon paths into the drawing format.
 */
 library us.milby.library.icondrawing
 
-metadata version is "1.0.0"
+metadata version is "1.0.1"
 metadata author is "Milby Computer"
 metadata title is "SVG Icon Drawing Library"
 
@@ -53,7 +53,8 @@ public handler generateXmlForSvgPath(in pPathString as String) returns String
         "   version=\q1.0\q\n" & \
         "   width=\q" & tW & "\q  height=\q" & tH & "\q\n" & \
         ">\n" & \
-        "<path d=\q" & the instructions of tPath & "\q />\n" & \
+        "<path fill=\qCurrentColor\q" & \
+        "   d=\q" & the instructions of tPath & "\q />\n" & \
         "</svg>"
 end handler
 

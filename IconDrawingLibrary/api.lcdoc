@@ -8,7 +8,7 @@ Description:
 This library adds a utility handler that allows simple conversion of
 SVG Icon paths into the drawing format.
 
-version: 1.0.0
+version: 1.0.1
 
 author: Milby Computer
 

@@ -1,0 +1,19 @@
+<package version="0.0">
+  <name>us.milby.library.icondrawing</name>
+  <title>SVG Icon Drawing Library</title>
+  <author>Milby Computer</author>
+  <version>1.0.1</version>
+  <license>community</license>
+  <type>library</type>
+  <requires name="com.livecode.canvas"/>
+  <requires name="com.livecode.library.iconsvg"/>
+  <requires name="com.livecode.arithmetic"/>
+  <requires name="com.livecode.logic"/>
+  <requires name="com.livecode.binary"/>
+  <requires name="com.livecode.list"/>
+  <requires name="com.livecode.string"/>
+  <requires name="com.livecode.engine"/>
+  <handler name="generateXmlForSvgPath" parameters="in string" return="string"/>
+  <handler name="drawingSvgCompilePath" parameters="in string" return="any"/>
+  <handler name="drawingSvgCompileIcon" parameters="in string" return="any"/>
+</package>
