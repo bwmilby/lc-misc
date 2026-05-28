@@ -10,6 +10,7 @@ on mouseUp
    local tDestPath, tDocumentationPath, tSourcePath, tTemplate, tFileRelativePath
    local tDocsCSSFolder, tDocsJSFolder, tDataPath
    local tIDEGuidesFolder, tRepoGuidesFolder
+   local tLine, tArgCode, tTabs
    
    set the itemdel to slash
    put item 1 to -2 of the filename of this stack into tDestPath
@@ -31,14 +32,6 @@ on mouseUp
    revCopyFolder tSourcePath & slash & "resources" & slash & "media", \
          tDestPath & slash & "resources"
    
-   repeat for each item tProduct in "commercial,community,communityplus,professional"
-      create folder tDestPath & slash & "resources" & slash & tProduct
-      create folder tDestPath & slash & "resources" & slash & tProduct & slash & "ideSkin"
-      put "/resources/" & tProduct & "/ideSkin/bubble.png" into tFileRelativePath
-      revCopyFile tDocumentationPath & "/../Toolset" & tFileRelativePath, \
-            tDestPath & tFileRelativePath
-   end repeat
-   
    put "." & slash & "css" into tDocsCSSFolder
    put "." & slash & "js" into tDocsJSFolder
    put "." & slash & "guides" into tIDEGuidesFolder
@@ -48,6 +41,17 @@ on mouseUp
    put url ("binfile:" & tSourcePath & slash & "api.html.template") into tTemplate
    put "." & slash & "built_api.js" into tDataPath
    put merge(tTemplate) into tTemplate
+   put lf & tab & tab & tab into tTabs
+   put tab & tab & tab & \
+         "// Read goEntryName arguments from URL query parameters" & tTabs & \
+         "// api.html?LibraryName=livecode_script&EntryName=get&EntryType=command" & tTabs & \
+         "const _urlParams = new URLSearchParams(window.location.search);" & tTabs & \
+         "const _arg1 = _urlParams.get('LibraryName') || '';" & tTabs & \
+         "const _arg2 = _urlParams.get('EntryName') || '';" & tTabs & \
+         "const _arg3 = _urlParams.get('EntryType') || '';" & tTabs & \
+         "goEntryName(_arg1, _arg2, _arg3);" into tArgCode
+   put lineoffset("goEntryName('",tTemplate) into tLine
+   put tArgCode into line tLine of tTemplate
    put tTemplate into url ("binfile:" & tDestPath & slash & "api.html")
    
    # create Guide HTML file
