@@ -1,3 +1,13 @@
 */*_Scripts/diff/*
 */*_Scripts/extra/*
 */*_vers/*
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+
